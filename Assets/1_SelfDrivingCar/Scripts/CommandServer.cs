@@ -23,6 +23,27 @@ public class CommandServer : MonoBehaviour
 		_carController = CarRemoteControl.GetComponent<CarController>();
 	}
 
+    // Convert angle (degrees) from Unity orientation to 
+    //            90
+    //
+    //  180                   0/360
+    //
+    //            270
+    //
+    // This is the standard format used in mathematical functions.
+    float convertAngle(float psi) {
+        if (psi >= 0 && psi <= 90) {
+            return 90 - psi;
+        }
+        else if (psi > 90 && psi <= 180) {
+            return 90 + 270 - (psi - 90);
+        }
+        else if (psi > 180 && psi <= 270) {
+            return 180 + 90 - (psi - 180);
+        }
+        return 270 - 90 - (psi - 270);
+    }
+
 	// Update is called once per frame
 	void Update()
 	{
@@ -69,6 +90,11 @@ public class CommandServer : MonoBehaviour
 				var pos = _carController.Position();
                 data["x"] = pos.x.ToString("N4");
                 data["z"] = pos.z.ToString("N4");
+
+                // Orientations
+                var psi = _carController.Orientation().eulerAngles.y;
+                var psi_rad = convertAngle(psi) * Mathf.Deg2Rad;
+                data["heading"] = psi_rad.ToString("N4");
 
 				_socket.Emit("telemetry", new JSONObject(data));
 			}
