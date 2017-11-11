@@ -65,6 +65,11 @@ public class CommandServer : MonoBehaviour
 				data["throttle"] = _carController.AccelInput.ToString("N4");
 				data["speed"] = _carController.CurrentSpeed.ToString("N4");
 				data["image"] = Convert.ToBase64String(CameraHelper.CaptureFrame(FrontFacingCamera));
+
+				//var pos = _carController.Position();
+                //data["x"] = new JSONObject(pos.x);
+                //data["y"] = new JSONObject(pos.z);
+
 				_socket.Emit("telemetry", new JSONObject(data));
 			}
 		});

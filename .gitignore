@@ -22,3 +22,7 @@ IMG
 driving_log.csv
 Archive.zip
 sdc.app
+
+# Ignore all textures and images etc.
+*.png
+*.meta
