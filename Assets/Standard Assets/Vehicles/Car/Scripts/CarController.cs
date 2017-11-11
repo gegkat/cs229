@@ -51,6 +51,7 @@ namespace UnityStandardAssets.Vehicles.Car
         [SerializeField] private Camera CenterCamera;
         [SerializeField] private Camera LeftCamera;
         [SerializeField] private Camera RightCamera;
+        [SerializeField] private GameObject MPCLine;
 
         private Quaternion[] m_WheelMeshLocalRotations;
         private Vector3 m_Prevpos, m_Pos;
@@ -63,14 +64,32 @@ namespace UnityStandardAssets.Vehicles.Car
         private const float k_ReversingThreshold = 0.01f;
         private string m_saveLocation = "";
         private Queue<CarSample> carSamples;
-		private int TotalSamples;
-		private bool isSaving;
-		private Vector3 saved_position;
-		private Quaternion saved_rotation;
+        private int TotalSamples;
+        private bool isSaving;
+        private Vector3 saved_position;
+        private Quaternion saved_rotation;
 
         public bool Skidding { get; private set; }
 
         public float BrakeInput { get; private set; }
+
+        public Vector3 Position () {
+            return transform.position;
+        }
+
+        public Quaternion Orientation () {
+            return transform.rotation;
+        }
+
+        public void ToggleMPCLine() {
+            var val = MPCLine.GetComponent<LineRenderer>().enabled;
+            MPCLine.GetComponent<LineRenderer>().enabled = !val;
+        }
+
+        public void DrawMPCLine(List<Vector3> points) {
+            var lr = MPCLine.GetComponent<LineRenderer>();
+            lr.SetPositions(points.ToArray());
+        }
 
         private bool m_isRecording = false;
         public bool IsRecording {
@@ -84,22 +103,22 @@ namespace UnityStandardAssets.Vehicles.Car
                 m_isRecording = value;
                 if(value == true)
                 { 
-					Debug.Log("Starting to record");
-					carSamples = new Queue<CarSample>();
-					StartCoroutine(Sample());             
+                    Debug.Log("Starting to record");
+                    carSamples = new Queue<CarSample>();
+                    StartCoroutine(Sample());             
                 } 
-				else
+                else
                 {
                     Debug.Log("Stopping record");
                     StopCoroutine(Sample());
                     Debug.Log("Writing to disk");
-					//save the cars coordinate parameters so we can reset it to this properly after capturing data
-					saved_position = transform.position;
-					saved_rotation = transform.rotation;
-					//see how many samples we captured use this to show save percentage in UISystem script
-					TotalSamples = carSamples.Count;
-					isSaving = true;
-					StartCoroutine(WriteSamplesToDisk());
+                    //save the cars coordinate parameters so we can reset it to this properly after capturing data
+                    saved_position = transform.position;
+                    saved_rotation = transform.rotation;
+                    //see how many samples we captured use this to show save percentage in UISystem script
+                    TotalSamples = carSamples.Count;
+                    isSaving = true;
+                    StartCoroutine(WriteSamplesToDisk());
 
                 };
             }
@@ -107,18 +126,18 @@ namespace UnityStandardAssets.Vehicles.Car
         }
 
 
-		public bool checkSaveLocation()
-		{
-			if (m_saveLocation != "") 
-			{
-				return true;
-			}
-			else
-			{
-				SimpleFileBrowser.ShowSaveDialog (OpenFolder, null, true, null, "Select Output Folder", "Select");
-			}
-			return false;
-		}
+        public bool checkSaveLocation()
+        {
+            if (m_saveLocation != "") 
+            {
+                return true;
+            }
+            else
+            {
+                SimpleFileBrowser.ShowSaveDialog (OpenFolder, null, true, null, "Select Output Folder", "Select");
+            }
+            return false;
+        }
 
         public float CurrentSteerAngle {
             get { return m_SteerAngle; }
@@ -330,7 +349,7 @@ namespace UnityStandardAssets.Vehicles.Car
         private void AddDownForce ()
         {
             m_WheelColliders [0].attachedRigidbody.AddForce (-transform.up * m_Downforce *
-            m_WheelColliders [0].attachedRigidbody.velocity.magnitude);
+                m_WheelColliders [0].attachedRigidbody.velocity.magnitude);
         }
 
 
@@ -367,7 +386,7 @@ namespace UnityStandardAssets.Vehicles.Car
             WheelHit wheelHit;
             switch (m_CarDriveType) {
             case CarDriveType.FourWheelDrive:
-                    // loop through all wheels
+                // loop through all wheels
                 for (int i = 0; i < 4; i++) {
                     m_WheelColliders [i].GetGroundHit (out wheelHit);
 
@@ -407,55 +426,55 @@ namespace UnityStandardAssets.Vehicles.Car
         }
 
 
-		//Changed the WriteSamplesToDisk to a IEnumerator method that plays back recording along with percent status from UISystem script 
-		//instead of showing frozen screen until all data is recorded
-		public IEnumerator WriteSamplesToDisk()
-		{
-			yield return new WaitForSeconds(0.000f); //retrieve as fast as we can but still allow communication of main thread to screen and UISystem
-			if (carSamples.Count > 0) {
-				//pull off a sample from the que
-				CarSample sample = carSamples.Dequeue();
+        //Changed the WriteSamplesToDisk to a IEnumerator method that plays back recording along with percent status from UISystem script 
+        //instead of showing frozen screen until all data is recorded
+        public IEnumerator WriteSamplesToDisk()
+        {
+            yield return new WaitForSeconds(0.000f); //retrieve as fast as we can but still allow communication of main thread to screen and UISystem
+            if (carSamples.Count > 0) {
+                //pull off a sample from the que
+                CarSample sample = carSamples.Dequeue();
 
-				//pysically moving the car to get the right camera position
-				transform.position = sample.position;
-				transform.rotation = sample.rotation;
+                //pysically moving the car to get the right camera position
+                transform.position = sample.position;
+                transform.rotation = sample.rotation;
 
-				// Capture and Persist Image
-				string centerPath = WriteImage (CenterCamera, "center", sample.timeStamp);
-				string leftPath = WriteImage (LeftCamera, "left", sample.timeStamp);
-				string rightPath = WriteImage (RightCamera, "right", sample.timeStamp);
+                // Capture and Persist Image
+                string centerPath = WriteImage (CenterCamera, "center", sample.timeStamp);
+                string leftPath = WriteImage (LeftCamera, "left", sample.timeStamp);
+                string rightPath = WriteImage (RightCamera, "right", sample.timeStamp);
 
-				string row = string.Format ("{0},{1},{2},{3},{4},{5},{6}\n", centerPath, leftPath, rightPath, sample.steeringAngle, sample.throttle, sample.brake, sample.speed);
-				File.AppendAllText (Path.Combine (m_saveLocation, CSVFileName), row);
-			}
-			if (carSamples.Count > 0) {
-				//request if there are more samples to pull
-				StartCoroutine(WriteSamplesToDisk()); 
-			}
-			else 
-			{
-				//all samples have been pulled
-				StopCoroutine(WriteSamplesToDisk());
-				isSaving = false;
+                string row = string.Format ("{0},{1},{2},{3},{4},{5},{6}\n", centerPath, leftPath, rightPath, sample.steeringAngle, sample.throttle, sample.brake, sample.speed);
+                File.AppendAllText (Path.Combine (m_saveLocation, CSVFileName), row);
+            }
+            if (carSamples.Count > 0) {
+                //request if there are more samples to pull
+                StartCoroutine(WriteSamplesToDisk()); 
+            }
+            else 
+            {
+                //all samples have been pulled
+                StopCoroutine(WriteSamplesToDisk());
+                isSaving = false;
 
-				//need to reset the car back to its position before ending recording, otherwise sometimes the car ended up in strange areas
-				transform.position = saved_position;
-				transform.rotation = saved_rotation;
-				m_Rigidbody.velocity = new Vector3(0f,-10f,0f);
-				Move(0f, 0f, 0f, 0f);
+                //need to reset the car back to its position before ending recording, otherwise sometimes the car ended up in strange areas
+                transform.position = saved_position;
+                transform.rotation = saved_rotation;
+                m_Rigidbody.velocity = new Vector3(0f,-10f,0f);
+                Move(0f, 0f, 0f, 0f);
 
-			}
-		}
+            }
+        }
 
-		public float getSavePercent()
-		{
-			return (float)(TotalSamples-carSamples.Count)/TotalSamples;
-		}
+        public float getSavePercent()
+        {
+            return (float)(TotalSamples-carSamples.Count)/TotalSamples;
+        }
 
-		public bool getSaveStatus()
-		{
-			return isSaving;
-		}
+        public bool getSaveStatus()
+        {
+            return isSaving;
+        }
 
 
         public IEnumerator Sample()
@@ -487,7 +506,7 @@ namespace UnityStandardAssets.Vehicles.Car
             {
                 StartCoroutine(Sample());
             }
-				
+
         }
 
         private void OpenFolder(string location)
