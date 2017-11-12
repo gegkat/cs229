@@ -2,17 +2,22 @@ clear all;
 close all; 
 clc;
 
-a = load('drive.out3'); 
+telem_output = load('drive.out'); 
 
-flds = {'x', 'speed', 'heading', 'steering_angle', 'z',' throttle'}
-flds = {'brake', 'throttle', 'heading', 'x', 'z', 'speed'};
+flds = {'z', 'steeringAngle', 'speed', 'throttle', 'x', 'heading'};
+for i = 1:length(flds)
+    data.(flds{i}) = telem_output(:,i);
+end
 
+data.heading = data.heading*180/pi;
 
-flds = {'heading', 'throttle', 'steering_angle', 'speed', 'z', 'x'}
-
-flds = {'steeringAngle', 'throttle', 'heading', 'z', 'x', 'speed'};
-for i = 1:6
-    data.(flds{i}) = a(:,i);
+for i = 1:length(flds)
     figure; plot(data.(flds{i}))
     title(flds{i})
 end
+
+
+waypoints = load('lake_track_waypoints.csv');
+figure; hold all;
+plot(data.x, data.z)
+plot(waypoints(:,1), waypoints(:,2), '-x')
