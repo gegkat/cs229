@@ -16,7 +16,7 @@ ch, row, col = 3, 160, 320  # Trimmed image format
 BATCH_SIZE = 64 # Used in generator to load images in batches
 MAX_SAMPLES = 50000 # Used for testing to reduce # of files to use in training
 STEERING_CORRECTION = [0, 0.2, -0.2] # Steering correction for center, left, right images
-DIR = './data_add_right_turn_and_dirt/' # Directory for driving log and images
+DIR = './2012_11_12 training data/' # Directory for driving log and images
 
 # Large turns are the biggest challenge for the model, but the majority of the samples
 # represent driving straight. The following constants are used to discard a portion of
