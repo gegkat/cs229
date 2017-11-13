@@ -1,26 +1,32 @@
 clear all; close all; clc;
 
-f = fileread('driving_log.csv'); 
+f = fileread('test_extra_training_output/driving_log.csv'); 
 lines = regexp(f, '\n', 'split');
 
-M = zeros(length(lines), 7); 
+M = zeros(length(lines), 10); 
 for i = 1:length(lines)
     curr = regexp(lines{i}, ',', 'split');
     M(i,:) = str2double(curr); 
 end
 
 M(:,1:3) = []; 
-M(:,4) = M(:,4)/100; % Convert speed to approx 1 scale 
 
-cols = {'steeringAngle', 'throttle', 'brake', 'Speed div 100'};
+cols = {'steeringAngle', 'throttle', 'brake', 'Speed div 100', 'posx', 'posy', 'heading'};
 for i = 1:length(cols)
     figure; 
-    plot(M(:,i), '.-')
+    y = M(:,i); 
+    if i == 4; y = y/100; end
+    plot(y, '.-')
     title(cols{i})
 end
 
 figure; hold all; 
-for i = 1:length(cols)
+for i = 1:4
     plot(M(:,i), '.-', 'DisplayName', cols{i})
 end
 legend toggle
+
+figure; hold all; 
+plot(M(:,5), M(:,6), '-')
+waypoints = load('lake_track_waypoints.csv');
+plot(waypoints(:,1), waypoints(:,2), '-x')

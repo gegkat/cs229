@@ -444,7 +444,7 @@ namespace UnityStandardAssets.Vehicles.Car
                 string leftPath = WriteImage (LeftCamera, "left", sample.timeStamp);
                 string rightPath = WriteImage (RightCamera, "right", sample.timeStamp);
 
-                string row = string.Format ("{0},{1},{2},{3},{4},{5},{6}\n", centerPath, leftPath, rightPath, sample.steeringAngle, sample.throttle, sample.brake, sample.speed);
+                string row = string.Format ("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9}\n", centerPath, leftPath, rightPath, sample.steeringAngle, sample.throttle, sample.brake, sample.speed, sample.position.x.ToString("N4"), sample.position.z.ToString("N4"), sample.rotation.eulerAngles.y.ToString("N4"));
                 File.AppendAllText (Path.Combine (m_saveLocation, CSVFileName), row);
             }
             if (carSamples.Count > 0) {
