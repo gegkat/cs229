@@ -10,12 +10,13 @@ public class MenuOptions : MonoBehaviour
 
     public void Start ()
     {
-        outlines = GetComponentsInChildren<Outline>();
-		Debug.Log ("in menu script "+outlines.Length);
-		if (outlines.Length > 0) 
-		{
-			outlines [0].effectColor = new Color (0, 0, 0);
-		}
+		SceneManager.LoadScene("LakeTrackTraining");
+//         outlines = GetComponentsInChildren<Outline>();
+// 		Debug.Log ("in menu script "+outlines.Length);
+// 		if (outlines.Length > 0) 
+// 		{
+// 			outlines [0].effectColor = new Color (0, 0, 0);
+// 		}
     }
 
 	public void ControlMenu()
