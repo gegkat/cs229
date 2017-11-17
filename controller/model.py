@@ -16,7 +16,7 @@ ch, row, col = 3, 160, 320  # Trimmed image format
 BATCH_SIZE = 64 # Used in generator to load images in batches
 MAX_SAMPLES = 50000 # Used for testing to reduce # of files to use in training
 STEERING_CORRECTION = [0, 0.2, -0.2] # Steering correction for center, left, right images
-DIR = './2012_11_12 training data/' # Directory for driving log and images
+DIR = './2017_11_12 training data/' # Directory for driving log and images
 
 # Large turns are the biggest challenge for the model, but the majority of the samples
 # represent driving straight. The following constants are used to discard a portion of
@@ -50,6 +50,9 @@ for line in lines:
 
     # Pull the steering angle from the 4th column
     orig_steering_angle = float(line[3]) 
+    orig_throttle = float(line[4]) 
+    orig_brake = float(line[5]) 
+    orig_speed = float(line[6])
 
     # Skip over a portion of the samples with small steering angles
     if np.abs(orig_steering_angle) < SMALL_TURN_THRESH:
@@ -99,20 +102,26 @@ def generator(samples, batch_size=32):
             # For each sample read the img data from file
             images = []
             angles = []
+            throttles = []
+            speeds = []
             for batch_sample in batch_samples:
                 image = cv2.imread(batch_sample[0])
                 angle = batch_sample[1]
+                throttle = batch_sample[2]
+                speed = batch_sample[3]
+                do_flip_flag = batch_samples[4]
 
                 # Half of the samples are have a boolean for flipping the image
-                if batch_samples[3]:
+                if do_flip_flag:
                     image = cv2.flip(image, 1)
                     angle = -1.0*angle
                 images.append(image)
                 angles.append(angle)
+                throttles.append(throttle)
 
             # Convert to numpy array for Keras
             X_train = np.array(images)
-            y_train = np.array(angles)
+            y_train = np.column_stack((angles, throttles))
             yield X_train, y_train
 
 # compile and train the model using the generator function
@@ -146,7 +155,7 @@ model.add(Flatten())
 model.add(Dense(100))
 model.add(Dense(50))
 model.add(Dense(10))
-model.add(Dense(1))
+model.add(Dense(2))
 
 model.compile(loss='mse', optimizer='adam')
 

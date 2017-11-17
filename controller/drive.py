@@ -73,9 +73,11 @@ def telemetry(sid, data):
         imgString = data["image"]
         image = Image.open(BytesIO(base64.b64decode(imgString)))
         image_array = np.asarray(image)
-        steering_angle = float(model.predict(image_array[None, :, :, :], batch_size=1))
+        model_output = model.predict(image_array[None, :, :, :], batch_size=1) 
+        steering_angle = float(model_output[0][0])
+        throttle = float(model_output[0][1])
 
-        throttle = controller.update(float(speed))
+        # throttle = controller.update(float(speed))
 
         #print(steering_angle, throttle)
         send_control(steering_angle, throttle)
@@ -107,7 +109,7 @@ def send_control(steering_angle, throttle):
 
 
 if __name__ == '__main__':
-    simulator=sp.Popen('exec open ../carsim_mac/Contents/MacOS/carsim_mac.app')
+    simulator=sp.Popen('../carsim_mac.app/Contents/MacOS/carsim_mac')
     parser = argparse.ArgumentParser(description='Remote Driving')
     parser.add_argument(
         'model',
