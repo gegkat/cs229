@@ -106,8 +106,8 @@ def send_control(steering_angle, throttle):
         skip_sid=True)
 
 
-if __name__ == '__main__'
-    simulator=sp.Popen('exec open ./carsim_mac/Contents/MacOS/carsim_mac.app')
+if __name__ == '__main__':
+    simulator=sp.Popen('exec open ../carsim_mac/Contents/MacOS/carsim_mac.app')
     parser = argparse.ArgumentParser(description='Remote Driving')
     parser.add_argument(
         'model',
