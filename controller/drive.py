@@ -12,6 +12,8 @@ import eventlet.wsgi
 from PIL import Image
 from flask import Flask
 from io import BytesIO
+import subprocess as sp
+import time
 
 from keras.models import load_model
 import h5py
@@ -105,6 +107,10 @@ def send_control(steering_angle, throttle):
 
 
 if __name__ == '__main__':
+    sp.Popen(['cd','~/Documents/Academics/Stanford/Q1/CS229/Project/self-driving-car-sim'], shell=True)
+    car=sp.Popen('exec open ./no_menu.app', shell=True)
+    print("Hello!\n")
+    time.sleep(15)
     parser = argparse.ArgumentParser(description='Remote Driving')
     parser.add_argument(
         'model',
