@@ -106,11 +106,8 @@ def send_control(steering_angle, throttle):
         skip_sid=True)
 
 
-if __name__ == '__main__':
-    sp.Popen(['cd','~/Documents/Academics/Stanford/Q1/CS229/Project/self-driving-car-sim'], shell=True)
-    car=sp.Popen('exec open ./no_menu.app', shell=True)
-    print("Hello!\n")
-    time.sleep(15)
+if __name__ == '__main__'
+    simulator=sp.Popen('exec open ./carsim_mac/Contents/MacOS/carsim_mac.app')
     parser = argparse.ArgumentParser(description='Remote Driving')
     parser.add_argument(
         'model',
