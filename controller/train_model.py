@@ -12,7 +12,7 @@ import sklearn
 from sklearn.model_selection import train_test_split
 import random
 
-import NVIDIA_model
+import models
 
 # Constants
 ch, row, col = 3, 160, 320  # Trimmed image format
@@ -155,7 +155,7 @@ if OUTPUT_THROTTLE:
 else:
     n_outputs = 1
 
-model = NVIDIA_model.NVIDIA_model(model, n_outputs)
+model = models.NVIDIA_model(model, n_outputs)
 
 model.compile(loss='mse', optimizer='adam')
 
