@@ -1,3 +1,4 @@
+from math import *
 import os
 import csv
 from keras.models import Sequential
@@ -161,9 +162,9 @@ model.compile(loss='mse', optimizer='adam')
 
 # Train model
 start_time = time.time()
-model.fit_generator(train_generator, samples_per_epoch= 
-            len(train_samples), validation_data=validation_generator, 
-            nb_val_samples=len(validation_samples), nb_epoch=3)
+model.fit_generator(train_generator, steps_per_epoch= 
+            len(train_samples)/BATCH_SIZE-1, validation_data=validation_generator, 
+            validation_steps=floor(len(validation_samples)/BATCH_SIZE), epochs=3)
 end_time = time.time()
 print('Trained model in {:.2f} seconds'.format(end_time-start_time))
 
