@@ -1,9 +1,9 @@
-name: carsim
+name: cs229
 channels:
     - https://conda.anaconda.org/menpo
     - conda-forge
 dependencies:
-    - python==2.7
+    - python
     - numpy
     - matplotlib
     - jupyter
