@@ -42,7 +42,7 @@ def buildNVIDIAModell():
     return model
 
 
-def buildLSTMModel(volumesPerBatch, timesteps, cameraFormat=(3, 480, 640), verbosity=0):
+def buildLSTMModel(timesteps, cameraFormat, verbosity=0):
   """
   Build and return a CNN + LSTM model; details in the comments.
   The model expects batch_input_shape =
@@ -65,14 +65,14 @@ def buildLSTMModel(volumesPerBatch, timesteps, cameraFormat=(3, 480, 640), verbo
   if timesteps == 1:
     raise ValueError("Not supported w/ TimeDistributed layers")
 
-  print(volumesPerBatch, timesteps, ch, row, col)
+  print(timesteps, ch, row, col)
 
   # Use a lambda layer to normalize the input data
   # It's necessary to specify batch_input_shape in the first layer in order to
   # have stateful recurrent layers later
   model.add(Lambda(
       lambda x: x/127.5 - 1.,
-      batch_input_shape=(volumesPerBatch, timesteps, ch, row, col),
+      input_shape=(timesteps, ch, row, col),
       )
   )
 
@@ -82,42 +82,96 @@ def buildLSTMModel(volumesPerBatch, timesteps, cameraFormat=(3, 480, 640), verbo
   # activation is via ReLU units; this is current best practice (He et al., 2014)
 
   # Several convolutional layers, each followed by ELU activation
-  # 8x8 convolution (kernel) with 4x4 stride over 16 output filters
   model.add(TimeDistributed(
-      Convolution2D(16, 8, 8, subsample=(4, 4), border_mode="same", init="he_normal")))
-  model.add(Activation("relu"))
-  # 5x5 convolution (kernel) with 2x2 stride over 32 output filters
+      Convolution2D(24, 5, 5, subsample=(2, 2), activation='relu')))
   model.add(TimeDistributed(
-      Convolution2D(32, 5, 5, subsample=(2, 2), border_mode="same", init="he_normal")))
-  model.add(Activation("relu"))
-  # 5x5 convolution (kernel) with 2x2 stride over 64 output filters
+      Convolution2D(36, 5, 5, subsample=(2, 2), activation='relu')))
   model.add(TimeDistributed(
-      Convolution2D(64, 5, 5, subsample=(2, 2), border_mode="same", init="he_normal")))
-  # TODO: Add a max pooling layer?
+      Convolution2D(48, 5, 5, subsample=(2, 2), activation='relu')))
+  model.add(TimeDistributed(
+      Convolution2D(64, 3, 3, activation='relu')))
+  model.add(TimeDistributed(
+      Convolution2D(64, 3, 3, activation='relu')))
 
-  # Flatten the input to the next layer; output shape = (None, 76800)
+
   model.add(TimeDistributed(Flatten()))
-  # Apply dropout to reduce overfitting
-  model.add(Dropout(.2))
-  model.add(Activation("relu"))
 
-  # Fully connected layer
-  # model.add(TimeDistributed(Dense(512)))
-  # More dropout
-  model.add(Dropout(.2))
-  model.add(Activation("relu"))
+  model.add(LSTM(100,
+                 return_sequences=True))
+  # model.add(LSTM(512,
+  #                return_sequences=True,
+  #                stateful=True))
 
-  # Add stacked (stateful) LSTM layers
-  model.add(LSTM(512,
-                 return_sequences=True,
-                 batch_input_shape=(volumesPerBatch, timesteps, 512),
-                 stateful=True))
-  model.add(LSTM(512,
-                 return_sequences=True,
-                 stateful=True))
 
-  # Fully connected layer with one output dimension (representing the predicted
-  # value).
+  model.add(TimeDistributed(Dense(100)))
+  model.add(TimeDistributed(Dense(50)))
+  model.add(TimeDistributed(Dense(10)))
+  model.add(TimeDistributed(Dense(2)))
+
+  # Adam optimizer is a standard, efficient SGD optimization method
+  # Loss function is mean squared error, standard for regression problems
+  model.compile(optimizer="adam", loss="mse")
+
+
+def buildLSTMModel_fast(timesteps, cameraFormat, verbosity=0):
+  """
+  Build and return a CNN + LSTM model; details in the comments.
+  The model expects batch_input_shape =
+  (volumes per batch, timesteps per volume, (camera format 3-tuple))
+  A "volume" is a video frame data struct extended in the time dimension.
+  Args:
+    volumesPerBatch: (int) batch size / timesteps
+    timesteps: (int) Number of timesteps per volume.
+    cameraFormat: (3-tuple) Ints to specify the input dimensions (color
+        channels, height, width).
+    verbosity: (int) Print model config.
+  Returns:
+    A compiled Keras model.
+  """
+  print("Building model...")
+  ch, row, col = cameraFormat
+
+  model = Sequential()
+
+  if timesteps == 1:
+    raise ValueError("Not supported w/ TimeDistributed layers")
+
+  print(timesteps, ch, row, col)
+
+  # Use a lambda layer to normalize the input data
+  # It's necessary to specify batch_input_shape in the first layer in order to
+  # have stateful recurrent layers later
+  model.add(Lambda(
+      lambda x: x/127.5 - 1.,
+      input_shape=(timesteps, ch, row, col),
+      )
+  )
+
+  model.add(TimeDistributed(Cropping2D(cropping=((70,25),(0,0)))))
+
+  # For CNN layers, weights are initialized with Gaussian scaled by fan-in and
+  # activation is via ReLU units; this is current best practice (He et al., 2014)
+
+  # Several convolutional layers, each followed by ELU activation
+  model.add(TimeDistributed(
+      Convolution2D(12, 5, 5, subsample=(2, 2), activation='relu')))
+  model.add(TimeDistributed(
+      Convolution2D(18, 5, 5, subsample=(2, 2), activation='relu')))
+  model.add(TimeDistributed(
+      Convolution2D(32, 3, 3, activation='relu')))
+
+
+  model.add(TimeDistributed(Flatten()))
+
+  model.add(LSTM(50,
+                 return_sequences=True))
+  # model.add(LSTM(512,
+  #                return_sequences=True,
+  #                stateful=True))
+
+
+  model.add(TimeDistributed(Dense(50)))
+  model.add(TimeDistributed(Dense(10)))
   model.add(TimeDistributed(Dense(2)))
 
   # Adam optimizer is a standard, efficient SGD optimization method
@@ -141,12 +195,12 @@ def buildLSTMModel(volumesPerBatch, timesteps, cameraFormat=(3, 480, 640), verbo
 
 # Constants
 ch, row, col = 3, 160, 320  # Trimmed image format
-BATCH_SIZE = 120 # Used in generator to load images in batches
-TIME_STEPS = 10
-MAX_SAMPLES = 50000 # Used for testing to reduce # of files to use in training
+BATCH_SIZE = 200 # Used in generator to load images in batches
+TIME_STEPS = 5
+MAX_SAMPLES = 1000 # Used for testing to reduce # of files to use in training
 STEERING_CORRECTION = [0, 0.2, -0.2] # Steering correction for center, left, right images
-# DIR = './2017_11_12 training data/' # Directory for driving log and images
-DIR = './2017_11_17_slow/'
+DIR = './2017_11_12 training data/' # Directory for driving log and images
+# DIR = './2017_11_17_slow/'
 # Large turns are the biggest challenge for the model, but the majority of the samples
 # represent driving straight. The following constants are used to discard a portion of
 # of samples under a minimum steering angle
@@ -307,9 +361,9 @@ print('Generator test: X.shape = {}, y.shape = {}'.format(X.shape, y.shape))
 
 # model = buildNVIDIAModell()
 
-volumes_per_batch = BATCH_SIZE / TIME_STEPS
+# volumes_per_batch = BATCH_SIZE / TIME_STEPS
 
-model = buildLSTMModel(volumes_per_batch, TIME_STEPS, cameraFormat=(row, col, ch), verbosity=1)
+model = buildLSTMModel_fast(TIME_STEPS, cameraFormat=(row, col, ch), verbosity=1)
 
 
 # Train model
