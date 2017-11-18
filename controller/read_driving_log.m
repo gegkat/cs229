@@ -1,6 +1,6 @@
 clear all; close all; clc;
 
-f = fileread('test_extra_training_output/driving_log.csv'); 
+f = fileread('driving_log.csv'); 
 lines = regexp(f, '\n', 'split');
 
 M = zeros(length(lines), 10); 
@@ -22,7 +22,9 @@ end
 
 figure; hold all; 
 for i = 1:4
-    plot(M(:,i), '.-', 'DisplayName', cols{i})
+    y = M(:,i); 
+    if i == 4; y = y/100; end
+    plot(y, '.-', 'DisplayName', cols{i})
 end
 legend toggle
 
