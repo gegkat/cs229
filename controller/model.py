@@ -50,9 +50,6 @@ for line in lines:
 
     # Pull the steering angle from the 4th column
     orig_steering_angle = float(line[3]) 
-    orig_throttle = float(line[4]) 
-    orig_brake = float(line[5]) 
-    orig_speed = float(line[6])
 
     # Skip over a portion of the samples with small steering angles
     if np.abs(orig_steering_angle) < SMALL_TURN_THRESH:
@@ -102,26 +99,20 @@ def generator(samples, batch_size=32):
             # For each sample read the img data from file
             images = []
             angles = []
-            throttles = []
-            speeds = []
             for batch_sample in batch_samples:
                 image = cv2.imread(batch_sample[0])
                 angle = batch_sample[1]
-                throttle = batch_sample[2]
-                speed = batch_sample[3]
-                do_flip_flag = batch_samples[4]
 
                 # Half of the samples are have a boolean for flipping the image
-                if do_flip_flag:
+                if batch_samples[3]:
                     image = cv2.flip(image, 1)
                     angle = -1.0*angle
                 images.append(image)
                 angles.append(angle)
-                throttles.append(throttle)
 
             # Convert to numpy array for Keras
             X_train = np.array(images)
-            y_train = np.column_stack((angles, throttles))
+            y_train = np.array(angles)
             yield X_train, y_train
 
 # compile and train the model using the generator function
@@ -146,27 +137,28 @@ model.add(Lambda(lambda x: x/127.5 - 1.,
 # Crop to focus on the part of the image containing the road
 model.add(Cropping2D(cropping=((70,25),(0,0))))
 # NVIDIA architechture
-model.add(Convolution2D(24,5,5, subsample=(2,2), activation='relu'))
-model.add(Convolution2D(36,5,5, subsample=(2,2), activation='relu'))
-model.add(Convolution2D(48,5,5, subsample=(2,2), activation='relu'))
-model.add(Convolution2D(64,3,3, activation='relu'))
-model.add(Convolution2D(64,3,3, activation='relu'))
+model.add(Convolution2D(24,5, strides=(2,2), activation='relu'))
+model.add(Convolution2D(36,5, strides=(2,2), activation='relu'))
+model.add(Convolution2D(48,5, strides=(2,2), activation='relu'))
+model.add(Convolution2D(64,3, activation='relu'))
+model.add(Convolution2D(64,3, activation='relu'))
 model.add(Flatten())
 model.add(Dense(100))
 model.add(Dense(50))
 model.add(Dense(10))
-model.add(Dense(2))
+model.add(Dense(1))
 
 model.compile(loss='mse', optimizer='adam')
 
 # Train model
 start_time = time.time()
-model.fit_generator(train_generator, samples_per_epoch= 
-            len(train_samples), validation_data=validation_generator, 
-            nb_val_samples=len(validation_samples), nb_epoch=3)
+model.fit_generator(train_generator, steps_per_epoch= 
+            len(train_samples)/BATCH_SIZE-1, validation_data=validation_generator, 
+            validation_steps=len(validation_samples)/BATCH_SIZE-1, epochs=3)
 end_time = time.time()
 print('Trained model in {:.2f} seconds'.format(end_time-start_time))
 
 # Save the model
 print("Saving model weights and configuration file.")
 model.save('model.h5')
+
