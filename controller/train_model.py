@@ -14,10 +14,11 @@ import random
 
 import models
 import argparse
+from matplotlib import pyplot
 
 # Constants
 ch, row, col = 3, 160, 320  # Trimmed image format
-BATCH_SIZE = 64 # Used in generator to load images in batches
+BATCH_SIZE = 50 # Used in generator to load images in batches
 
 # Include throttle in output of generator
 OUTPUT_THROTTLE = False
@@ -26,7 +27,7 @@ OUTPUT_THROTTLE = False
 def get_samples():
 
     # Hard-coded constants
-    MAX_SAMPLES = 50000 # Used for testing to reduce # of files to use in training
+    MAX_SAMPLES = 500 # Used for testing to reduce # of files to use in training
     STEERING_CORRECTION = [0, 0.2, -0.2] # Steering correction for center, left, right images
     DIR = './2017_11_17_slow/' # Directory for driving log and images
 
@@ -96,6 +97,7 @@ def get_samples():
 
 # Define generator function for use by keras fit_generator function
 def generator(samples, output_throttle=False, batch_size=32):
+    print("batch size in generator: {}".format(batch_size))
     num_samples = len(samples)
     while 1: # Loop forever so the generator never terminates
         # Shuffle for each loop through the data
@@ -117,7 +119,7 @@ def generator(samples, output_throttle=False, batch_size=32):
                 angle = batch_sample[1]
                 throttle = batch_sample[2]
                 speed = batch_sample[3]
-                do_flip_flag = batch_samples[4]
+                do_flip_flag = batch_sample[4]
 
                 # Half of the samples are have a boolean for flipping the image
                 if do_flip_flag:
@@ -159,7 +161,8 @@ if __name__ == '__main__':
 
     # Test generator
     count = 0
-    for X,y in generator(train_samples, BATCH_SIZE):
+    print("BATCH SIZE sent to generator: {}".format(BATCH_SIZE))
+    for X,y in generator(train_samples, output_throttle=OUTPUT_THROTTLE, batch_size=BATCH_SIZE):
         count = count+1
         if count >= 2:
             break
@@ -194,12 +197,25 @@ if __name__ == '__main__':
 
     # Train model
     start_time = time.time()
-    model.fit_generator(train_generator, steps_per_epoch= 
-                len(train_samples)/BATCH_SIZE-1, validation_data=validation_generator, 
-                validation_steps=floor(len(validation_samples)/BATCH_SIZE), epochs=3)
+
+    train_steps_per_epoch = floor(len(train_samples)/BATCH_SIZE)
+    val_steps_per_epoch = floor(len(validation_samples)/BATCH_SIZE)
+    val_steps_per_epoch = 1
+    history = model.fit_generator(train_generator, steps_per_epoch= train_steps_per_epoch
+                , validation_data=validation_generator, 
+                validation_steps= val_steps_per_epoch, epochs=3)
     end_time = time.time()
     print('Trained model in {:.2f} seconds'.format(end_time-start_time))
 
     # Save the model
     print("Saving model weights and configuration file.")
     model.save('model.h5')
+
+    pyplot.plot(history.history['loss'], label='training loss')
+    pyplot.plot(history.history['val_loss'], label='val loss')
+    pyplot.legend()
+    pyplot.xlabel('# Epochs')
+    pyplot.ylabel('MSE Loss')
+    pyplot.savefig('loss_vs_epoch.png', dpi=400)
+    pyplot.show()
+
