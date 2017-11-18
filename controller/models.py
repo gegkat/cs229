@@ -68,3 +68,16 @@ def simple_NN(model, n_outputs=1):
 
 
     return model
+
+
+def simple_CNN(model, n_outputs=1):
+
+    # NVIDIA architechture
+    model.add(Convolution2D(10,5,5, activation='relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+
+    model.add(Flatten())
+    model.add(Dense(n_outputs))
+
+
+    return model

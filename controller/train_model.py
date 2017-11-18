@@ -203,6 +203,8 @@ if __name__ == '__main__':
         model = models.linear_regression(model, n_outputs)
     elif args.model == 'simple':
         model = models.simple_NN(model, n_outputs)
+    elif args.model == 'cnn':
+        model = models.simple_CNN(model, n_outputs)
     else: 
         print("Did not recognize model input: {}".format(args.model))
         exit()
