@@ -181,7 +181,9 @@ if __name__ == '__main__':
         n_outputs = 1
 
     if args.model == "NVIDIA":
-        model = models.NVIDIA_model(model, n_outputs)
+        model = models.NVIDIA(model, n_outputs)
+    elif args.model == 'linear':
+        model = models.linear_regression(model, n_outputs)
     else: 
         print("Did not recognize model input: {}".format(args.model))
         exit()

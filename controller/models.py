@@ -31,7 +31,7 @@ import sklearn
 from sklearn.model_selection import train_test_split
 import random
 
-def NVIDIA_model(model, n_outputs=1):
+def NVIDIA(model, n_outputs=1):
 
     # NVIDIA architechture
     model.add(Convolution2D(24,5,5, subsample=(2,2), activation='relu'))
@@ -46,5 +46,14 @@ def NVIDIA_model(model, n_outputs=1):
     model.add(Dense(10))
     model.add(Dense(n_outputs))
 
+
+    return model
+
+
+def linear_regression(model, n_outputs=1):
+
+    # NVIDIA architechture
+    model.add(Flatten())
+    model.Dense(1,activation='linear')
 
     return model
