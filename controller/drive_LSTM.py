@@ -19,12 +19,14 @@ from keras.models import load_model
 import h5py
 from keras import __version__ as keras_version
 
+# import LSTM
+
 sio = socketio.Server()
 app = Flask(__name__)
 model = None
-prev_image_array = None
 
 global img_list
+
 
 class SimplePIController:
     def __init__(self, Kp, Ki):
@@ -55,6 +57,8 @@ controller.set_desired(set_speed)
 @sio.on('telemetry')
 def telemetry(sid, data):
     global img_list
+    global steer_cmd
+    global throttle_cmd
 
     if data:
         #print('start')
@@ -77,21 +81,26 @@ def telemetry(sid, data):
         image = Image.open(BytesIO(base64.b64decode(imgString)))
         image_array = np.asarray(image)
 
+        # in case img list has not been spooled up, set initial values to 0
+        steer_cmd = 0
+        throttle_cmd = 0
+
         img_list.append(image_array)
-        print(len(img_list))
+        # print(len(img_list))
         if len(img_list) == 5:         
-            print("doing model")
             model_in = np.array(img_list)  
-            img_list = []
-            print(model_in[None, :, :, :, :].shape)
+            img_list.pop(0)
+            # print(model_in[None, :, :, :, :].shape)
             model_output = model.predict(model_in[None, :, :, :, :], batch_size=1) 
             # model_output = model.predict(model_in[None, :, :, :, :], batch_input_shape=(1, 5, 160, 320, 3)) 
-            print(model_output)
-            steering_angle = float(model_output[0][0][0])
-            throttle = float(model_output[0][0][1])
-            send_control(steering_angle, throttle)
-        else:
-            send_control(0, 0)
+            # print(model_output)
+            steer_cmd = float(model_output[0][0][0])
+            throttle_cmd = float(model_output[0][0][1])
+
+
+
+        send_control(steer_cmd, throttle_cmd)
+  
 
 
 
