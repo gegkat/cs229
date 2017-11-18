@@ -29,18 +29,15 @@ def split_train(lis,n):
 
 # Constants
 ch, row, col = 3, 160, 320  # Trimmed image format
-BATCH_SIZE = 64 # Used in generator to load images in batches
 
 # Include throttle in output of generator
 OUTPUT_THROTTLE = False
 
 
-def get_samples(num_split):
+def get_samples(data_dir, num_split):
 
     # Hard-coded constants
     STEERING_CORRECTION = [0, 0.2, -0.2] # Steering correction for center, left, right images
-    #DIR = './2017_11_17_slow/' # Directory for driving log and images
-    DIR = './2017_11_12 training data/' # Directory for driving log and images
 
     # Large turns are the biggest challenge for the model, but the majority of the samples
     # represent driving straight. The following constants are used to discard a portion of
@@ -49,10 +46,11 @@ def get_samples(num_split):
     SMALL_TURN_DISCARD_PROBABILITY = 0.60   # Probability to discard a sample
 
     # Read and store all lines in .csv file
+    data_dir = './' + data_dir + '/'
     print('Start read csv')
     start_time = time.time()
     lines = []
-    with open(DIR + 'driving_log.csv') as csvfile:
+    with open(data_dir + 'driving_log.csv') as csvfile:
         reader = csv.reader(csvfile)
         for line in reader:
             lines.append(line)
@@ -83,7 +81,7 @@ def get_samples(num_split):
         # Loop through center, left, and right images
         for i in range(0,3):
             # Pull the file name from the log
-            file_name = DIR + 'IMG/' + line[i].split('/')[-1]
+            file_name = data_dir + 'IMG/' + line[i].split('/')[-1]
 
             # Add a correction factor for left and right cameras
             steering_angle = orig_steering_angle + STEERING_CORRECTION[i]
@@ -149,34 +147,63 @@ def generator(samples, output_throttle=False, batch_size=32):
 
 
 if __name__ == '__main__':
-#    simulator=sp.Popen('../carsim_mac.app/Contents/MacOS/carsim_mac')
     parser = argparse.ArgumentParser(description='Train model')
+
+    parser.add_argument(
+        'data_dir',
+        type=str,
+        help='Relative path to directory containing training data'
+    )
+
     parser.add_argument(
         'model',
         type=str,
-        help='Path to model h5 file. Model should be on the same path.'
+        help='Name of model architecture. linear, simple, cnn, or NVIDIA.'
+    )
+
+    parser.add_argument(
+        '--frac',
+        type=float,
+        default = 1.0,
+        help='Fraction of example data to use'
     )
     parser.add_argument(
-        'example_frac',
-        type=float,
-        help='Path to model h5 file. Model should be on the same path.'
+        '--epochs',
+        type=int,
+        default = 3,
+        help='# of Epochs to train'
     )
+
+    parser.add_argument(
+        '--showplot',
+        type=int,
+        default = 0,
+        help='Flag to call pyplot.show(). 1 to show plot otherwise will not show'
+    )
+
+    parser.add_argument(
+        '--batchsize',
+        type=int,
+        default = 64,
+        help='Batch size for training'
+    )
+
 
     args = parser.parse_args()
 
 
-    samples = get_samples(args.example_frac)
+    samples = get_samples(args.data_dir, args.frac)
 
     # Split samples into training and validation
     train_samples, validation_samples = train_test_split(samples, test_size=0.2)
 
     # compile and train the model using the generator function
-    train_generator = generator(train_samples, output_throttle=OUTPUT_THROTTLE, batch_size=BATCH_SIZE)
-    validation_generator = generator(validation_samples, output_throttle=OUTPUT_THROTTLE, batch_size=BATCH_SIZE)
+    train_generator = generator(train_samples, output_throttle=OUTPUT_THROTTLE, batch_size=args.batchsize)
+    validation_generator = generator(validation_samples, output_throttle=OUTPUT_THROTTLE, batch_size=args.batchsize)
 
     # Test generator
     count = 0
-    for X,y in generator(train_samples, output_throttle=OUTPUT_THROTTLE, batch_size=BATCH_SIZE):
+    for X,y in generator(train_samples, output_throttle=OUTPUT_THROTTLE, batch_size=args.batchsize):
         count = count+1
         if count >= 2:
             break
@@ -216,12 +243,12 @@ if __name__ == '__main__':
     # Train model
     start_time = time.time()
 
-    train_steps_per_epoch = floor(len(train_samples)/BATCH_SIZE)
-    val_steps_per_epoch = floor(len(validation_samples)/BATCH_SIZE)
+    train_steps_per_epoch = floor(len(train_samples)/args.batchsize)
+    val_steps_per_epoch = floor(len(validation_samples)/args.batchsize)
     val_steps_per_epoch = 1
     history = model.fit_generator(train_generator, steps_per_epoch= train_steps_per_epoch
                 , validation_data=validation_generator, 
-                validation_steps= val_steps_per_epoch, epochs=3)
+                validation_steps= val_steps_per_epoch, epochs=args.epochs)
     end_time = time.time()
     print('Trained model in {:.2f} seconds'.format(end_time-start_time))
 
@@ -235,5 +262,6 @@ if __name__ == '__main__':
     pyplot.xlabel('# Epochs')
     pyplot.ylabel('MSE Loss')
     pyplot.savefig('loss_vs_epoch.png', dpi=400)
-    pyplot.show()
+    if args.showplot == 1:
+        pyplot.show()
 
