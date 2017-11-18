@@ -57,3 +57,14 @@ def linear_regression(model, n_outputs=1):
     model.add(Dense(1,activation='linear'))
 
     return model
+
+def simple_NN(model, n_outputs=1):
+
+    # NVIDIA architechture
+    model.add(Flatten())
+
+    model.add(Dense(10, activation='relu'))
+    model.add(Dense(n_outputs))
+
+
+    return model

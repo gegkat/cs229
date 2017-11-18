@@ -38,7 +38,6 @@ OUTPUT_THROTTLE = False
 def get_samples(num_split):
 
     # Hard-coded constants
-    MAX_SAMPLES = 50000 # Used for testing to reduce # of files to use in training
     STEERING_CORRECTION = [0, 0.2, -0.2] # Steering correction for center, left, right images
     #DIR = './2017_11_17_slow/' # Directory for driving log and images
     DIR = './2017_11_12 training data/' # Directory for driving log and images
@@ -100,10 +99,6 @@ def get_samples(num_split):
 
     # Shuffle the samples
     samples = sklearn.utils.shuffle(samples)
-
-    # For testing purposes, limit the number of samples if desired
-    if len(samples) > MAX_SAMPLES:
-        samples = samples[0:MAX_SAMPLES]
 
     print('# SAMPLES: {}'.format(len(samples)))
 
@@ -206,6 +201,8 @@ if __name__ == '__main__':
         model = models.NVIDIA(model, n_outputs)
     elif args.model == 'linear':
         model = models.linear_regression(model, n_outputs)
+    elif args.model == 'simple':
+        model = models.simple_NN(model, n_outputs)
     else: 
         print("Did not recognize model input: {}".format(args.model))
         exit()
