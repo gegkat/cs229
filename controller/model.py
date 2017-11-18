@@ -12,6 +12,8 @@ import sklearn
 from sklearn.model_selection import train_test_split
 import random
 
+import NVIDIA_model
+
 # Constants
 ch, row, col = 3, 160, 320  # Trimmed image format
 BATCH_SIZE = 64 # Used in generator to load images in batches
@@ -24,6 +26,9 @@ DIR = './2017_11_17_slow/' # Directory for driving log and images
 # of samples under a minimum steering angle
 SMALL_TURN_THRESH = 0.03  # Threshold to consider discarding a sample
 SMALL_TURN_DISCARD_PROBABILITY = 0.60   # Probability to discard a sample
+
+# Include throttle in output of generator
+OUTPUT_THROTTLE = False
 
 # Read and store all lines in .csv file
 print('Start read csv')
@@ -83,7 +88,7 @@ print('# SAMPLES: {}'.format(len(samples)))
 train_samples, validation_samples = train_test_split(samples, test_size=0.2)
 
 # Define generator function for use by keras fit_generator function
-def generator(samples, batch_size=32):
+def generator(samples, output_throttle=False, batch_size=32):
     num_samples = len(samples)
     while 1: # Loop forever so the generator never terminates
         # Shuffle for each loop through the data
@@ -117,12 +122,15 @@ def generator(samples, batch_size=32):
 
             # Convert to numpy array for Keras
             X_train = np.array(images)
-            y_train = np.column_stack((angles, throttles))
+            if output_throttle:
+                y_train = np.column_stack((angles, throttles))
+            else:
+                y_train = np.array(angles)
             yield X_train, y_train
 
 # compile and train the model using the generator function
-train_generator = generator(train_samples, batch_size=BATCH_SIZE)
-validation_generator = generator(validation_samples, batch_size=BATCH_SIZE)
+train_generator = generator(train_samples, output_throttle=OUTPUT_THROTTLE, batch_size=BATCH_SIZE)
+validation_generator = generator(validation_samples, output_throttle=OUTPUT_THROTTLE, batch_size=BATCH_SIZE)
 
 # Test generator
 count = 0
@@ -141,17 +149,13 @@ model.add(Lambda(lambda x: x/127.5 - 1.,
         output_shape=(row, col, ch)))
 # Crop to focus on the part of the image containing the road
 model.add(Cropping2D(cropping=((70,25),(0,0))))
-# NVIDIA architechture
-model.add(Convolution2D(24,5,5, subsample=(2,2), activation='relu'))
-model.add(Convolution2D(36,5,5, subsample=(2,2), activation='relu'))
-model.add(Convolution2D(48,5,5, subsample=(2,2), activation='relu'))
-model.add(Convolution2D(64,3,3, activation='relu'))
-model.add(Convolution2D(64,3,3, activation='relu'))
-model.add(Flatten())
-model.add(Dense(100))
-model.add(Dense(50))
-model.add(Dense(10))
-model.add(Dense(2))
+
+if OUTPUT_THROTTLE:
+    n_outputs = 2
+else:
+    n_outputs = 1
+
+model = NVIDIA_model.NVIDIA_model(model, n_outputs)
 
 model.compile(loss='mse', optimizer='adam')
 
