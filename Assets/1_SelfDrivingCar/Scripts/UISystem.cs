@@ -110,7 +110,7 @@ public class UISystem : MonoSingleton<UISystem> {
 
 		if (!isTraining) 
 		{
-			if ((Input.GetKey(KeyCode.W)) || (Input.GetKey(KeyCode.S))) 
+			if ((Input.GetKey(KeyCode.M)))
 			{
 				DriveStatus_Text.color = Color.red;
 				DriveStatus_Text.text = "Mode: Manual";
