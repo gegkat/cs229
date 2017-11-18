@@ -71,8 +71,8 @@ for line in lines:
             # Add two copies of each image. One for regular and one for reversing the image
             # The reversing is done after the image is read in the generator. Here we are
             # just setting the flag true or false to tell the generator whether to reverse
-            samples.append([file_name, steering_angle, False])
-            samples.append([file_name, steering_angle, True])
+            samples.append([file_name, steering_angle, orig_throttle, orig_speed, False])
+            samples.append([file_name, steering_angle, orig_throttle, orig_speed, True])
 
 # Shuffle the samples
 samples = sklearn.utils.shuffle(samples)
