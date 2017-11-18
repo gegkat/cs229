@@ -18,7 +18,7 @@ from matplotlib import pyplot
 
 # Constants
 ch, row, col = 3, 160, 320  # Trimmed image format
-BATCH_SIZE = 50 # Used in generator to load images in batches
+BATCH_SIZE = 64 # Used in generator to load images in batches
 
 # Include throttle in output of generator
 OUTPUT_THROTTLE = False
@@ -27,7 +27,7 @@ OUTPUT_THROTTLE = False
 def get_samples():
 
     # Hard-coded constants
-    MAX_SAMPLES = 500 # Used for testing to reduce # of files to use in training
+    MAX_SAMPLES = 50000 # Used for testing to reduce # of files to use in training
     STEERING_CORRECTION = [0, 0.2, -0.2] # Steering correction for center, left, right images
     DIR = './2017_11_17_slow/' # Directory for driving log and images
 
@@ -97,7 +97,6 @@ def get_samples():
 
 # Define generator function for use by keras fit_generator function
 def generator(samples, output_throttle=False, batch_size=32):
-    print("batch size in generator: {}".format(batch_size))
     num_samples = len(samples)
     while 1: # Loop forever so the generator never terminates
         # Shuffle for each loop through the data
@@ -161,7 +160,6 @@ if __name__ == '__main__':
 
     # Test generator
     count = 0
-    print("BATCH SIZE sent to generator: {}".format(BATCH_SIZE))
     for X,y in generator(train_samples, output_throttle=OUTPUT_THROTTLE, batch_size=BATCH_SIZE):
         count = count+1
         if count >= 2:
