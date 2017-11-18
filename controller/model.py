@@ -17,13 +17,13 @@ ch, row, col = 3, 160, 320  # Trimmed image format
 BATCH_SIZE = 64 # Used in generator to load images in batches
 MAX_SAMPLES = 50000 # Used for testing to reduce # of files to use in training
 STEERING_CORRECTION = [0, 0.2, -0.2] # Steering correction for center, left, right images
-DIR = './2017_11_12 training data/' # Directory for driving log and images
+DIR = './2017_11_17_slow/' # Directory for driving log and images
 
 # Large turns are the biggest challenge for the model, but the majority of the samples
 # represent driving straight. The following constants are used to discard a portion of
 # of samples under a minimum steering angle
 SMALL_TURN_THRESH = 0.03  # Threshold to consider discarding a sample
-SMALL_TURN_PROBABILITY = 0.60   # Probability to discard a sample
+SMALL_TURN_DISCARD_PROBABILITY = 0.60   # Probability to discard a sample
 
 # Read and store all lines in .csv file
 print('Start read csv')
@@ -46,8 +46,6 @@ print('Read {} lines if csv in {:.2f} seconds'.format(len(lines), end_time-start
 # csv file minus some samples being removed for small steering angles
 samples = []
 for line in lines: 
-    # Initialize to true
-    use_sample = True
 
     # Pull the steering angle from the 4th column
     orig_steering_angle = float(line[3]) 
@@ -55,25 +53,22 @@ for line in lines:
     orig_brake = float(line[5]) 
     orig_speed = float(line[6])
 
-    # Skip over a portion of the samples with small steering angles
-    if np.abs(orig_steering_angle) < SMALL_TURN_THRESH:
-        if random.uniform(0,1) <= SMALL_TURN_PROBABILITY:
-            use_sample = False
+    # Loop through center, left, and right images
+    for i in range(0,3):
+        # Pull the file name from the log
+        file_name = DIR + 'IMG/' + line[i].split('/')[-1]
 
-    if use_sample:
-        # Loop through center, left, and right images
-        for i in range(0,3):
-            # Pull the file name from the log
-            file_name = DIR + 'IMG/' + line[i].split('/')[-1]
+        # Add a correction factor for left and right cameras
+        steering_angle = orig_steering_angle + STEERING_CORRECTION[i]
 
-            # Add a correction factor for left and right cameras
-            steering_angle = orig_steering_angle + STEERING_CORRECTION[i]
-
-            # Add two copies of each image. One for regular and one for reversing the image
-            # The reversing is done after the image is read in the generator. Here we are
-            # just setting the flag true or false to tell the generator whether to reverse
-            samples.append([file_name, steering_angle, orig_throttle, orig_speed, False])
-            samples.append([file_name, steering_angle, orig_throttle, orig_speed, True])
+        # Skip over a portion of the samples with small steering angles
+        if np.abs(steering_angle) > SMALL_TURN_THRESH or \
+           random.uniform(0,1) > SMALL_TURN_DISCARD_PROBABILITY:
+                # Add two copies of each image. One for regular and one for reversing the image
+                # The reversing is done after the image is read in the generator. Here we are
+                # just setting the flag true or false to tell the generator whether to reverse
+                samples.append([file_name, steering_angle, orig_throttle, orig_speed, False])
+                samples.append([file_name, steering_angle, orig_throttle, orig_speed, True])
 
 # Shuffle the samples
 samples = sklearn.utils.shuffle(samples)
@@ -82,7 +77,7 @@ samples = sklearn.utils.shuffle(samples)
 if len(samples) > MAX_SAMPLES:
     samples = samples[0:MAX_SAMPLES]
 
-print('# SAMPLES: {}, {}'.format(len(samples)/6, len(samples)))
+print('# SAMPLES: {}'.format(len(samples)))
 
 # Split samples into training and validation
 train_samples, validation_samples = train_test_split(samples, test_size=0.2)
