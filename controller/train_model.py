@@ -13,79 +13,86 @@ from sklearn.model_selection import train_test_split
 import random
 
 import models
+import argparse
 
 # Constants
 ch, row, col = 3, 160, 320  # Trimmed image format
 BATCH_SIZE = 64 # Used in generator to load images in batches
-MAX_SAMPLES = 50000 # Used for testing to reduce # of files to use in training
-STEERING_CORRECTION = [0, 0.2, -0.2] # Steering correction for center, left, right images
-DIR = './2017_11_17_slow/' # Directory for driving log and images
-
-# Large turns are the biggest challenge for the model, but the majority of the samples
-# represent driving straight. The following constants are used to discard a portion of
-# of samples under a minimum steering angle
-SMALL_TURN_THRESH = 0.03  # Threshold to consider discarding a sample
-SMALL_TURN_DISCARD_PROBABILITY = 0.60   # Probability to discard a sample
 
 # Include throttle in output of generator
 OUTPUT_THROTTLE = False
 
-# Read and store all lines in .csv file
-print('Start read csv')
-start_time = time.time()
-lines = []
-with open(DIR + 'driving_log.csv') as csvfile:
-    reader = csv.reader(csvfile)
-    for line in reader:
-        lines.append(line)
-end_time = time.time()
-print('Read {} lines if csv in {:.2f} seconds'.format(len(lines), end_time-start_time))
 
-# Preprocess the lines of the csv file
-# At the end of this step we will have a list of samples. Each sample
-# is a list with three eleements: 
-#   1. File name to an image file, including right and left images
-#   2. A steering angle (with correction factor for left/right images)
-#   3. A flag to flip or not flip the image
-# There will be 6 times the number of samples as there were lines in the
-# csv file minus some samples being removed for small steering angles
-samples = []
-for line in lines: 
+def get_samples():
 
-    # Pull the steering angle from the 4th column
-    orig_steering_angle = float(line[3]) 
-    orig_throttle = float(line[4]) 
-    orig_brake = float(line[5]) 
-    orig_speed = float(line[6])
+    # Hard-coded constants
+    MAX_SAMPLES = 50000 # Used for testing to reduce # of files to use in training
+    STEERING_CORRECTION = [0, 0.2, -0.2] # Steering correction for center, left, right images
+    DIR = './2017_11_17_slow/' # Directory for driving log and images
 
-    # Loop through center, left, and right images
-    for i in range(0,3):
-        # Pull the file name from the log
-        file_name = DIR + 'IMG/' + line[i].split('/')[-1]
+    # Large turns are the biggest challenge for the model, but the majority of the samples
+    # represent driving straight. The following constants are used to discard a portion of
+    # of samples under a minimum steering angle
+    SMALL_TURN_THRESH = 0.03  # Threshold to consider discarding a sample
+    SMALL_TURN_DISCARD_PROBABILITY = 0.60   # Probability to discard a sample
 
-        # Add a correction factor for left and right cameras
-        steering_angle = orig_steering_angle + STEERING_CORRECTION[i]
+    # Read and store all lines in .csv file
+    print('Start read csv')
+    start_time = time.time()
+    lines = []
+    with open(DIR + 'driving_log.csv') as csvfile:
+        reader = csv.reader(csvfile)
+        for line in reader:
+            lines.append(line)
+    end_time = time.time()
+    print('Read {} lines if csv in {:.2f} seconds'.format(len(lines), end_time-start_time))
 
-        # Skip over a portion of the samples with small steering angles
-        if np.abs(steering_angle) > SMALL_TURN_THRESH or \
-           random.uniform(0,1) > SMALL_TURN_DISCARD_PROBABILITY:
-                # Add two copies of each image. One for regular and one for reversing the image
-                # The reversing is done after the image is read in the generator. Here we are
-                # just setting the flag true or false to tell the generator whether to reverse
-                samples.append([file_name, steering_angle, orig_throttle, orig_speed, False])
-                samples.append([file_name, steering_angle, orig_throttle, orig_speed, True])
+    # Preprocess the lines of the csv file
+    # At the end of this step we will have a list of samples. Each sample
+    # is a list with three eleements: 
+    #   1. File name to an image file, including right and left images
+    #   2. A steering angle (with correction factor for left/right images)
+    #   3. A flag to flip or not flip the image
+    # There will be 6 times the number of samples as there were lines in the
+    # csv file minus some samples being removed for small steering angles
+    samples = []
+    for line in lines: 
 
-# Shuffle the samples
-samples = sklearn.utils.shuffle(samples)
+        # Pull the steering angle from the 4th column
+        orig_steering_angle = float(line[3]) 
+        orig_throttle = float(line[4]) 
+        orig_brake = float(line[5]) 
+        orig_speed = float(line[6])
 
-# For testing purposes, limit the number of samples if desired
-if len(samples) > MAX_SAMPLES:
-    samples = samples[0:MAX_SAMPLES]
+        # Loop through center, left, and right images
+        for i in range(0,3):
+            # Pull the file name from the log
+            file_name = DIR + 'IMG/' + line[i].split('/')[-1]
 
-print('# SAMPLES: {}'.format(len(samples)))
+            # Add a correction factor for left and right cameras
+            steering_angle = orig_steering_angle + STEERING_CORRECTION[i]
 
-# Split samples into training and validation
-train_samples, validation_samples = train_test_split(samples, test_size=0.2)
+            # Skip over a portion of the samples with small steering angles
+            if np.abs(steering_angle) > SMALL_TURN_THRESH or \
+               random.uniform(0,1) > SMALL_TURN_DISCARD_PROBABILITY:
+                    # Add two copies of each image. One for regular and one for reversing the image
+                    # The reversing is done after the image is read in the generator. Here we are
+                    # just setting the flag true or false to tell the generator whether to reverse
+                    samples.append([file_name, steering_angle, orig_throttle, orig_speed, False])
+                    samples.append([file_name, steering_angle, orig_throttle, orig_speed, True])
+
+    # Shuffle the samples
+    samples = sklearn.utils.shuffle(samples)
+
+    # For testing purposes, limit the number of samples if desired
+    if len(samples) > MAX_SAMPLES:
+        samples = samples[0:MAX_SAMPLES]
+
+    print('# SAMPLES: {}'.format(len(samples)))
+
+    return samples
+
+
 
 # Define generator function for use by keras fit_generator function
 def generator(samples, output_throttle=False, batch_size=32):
@@ -128,47 +135,69 @@ def generator(samples, output_throttle=False, batch_size=32):
                 y_train = np.array(angles)
             yield X_train, y_train
 
-# compile and train the model using the generator function
-train_generator = generator(train_samples, output_throttle=OUTPUT_THROTTLE, batch_size=BATCH_SIZE)
-validation_generator = generator(validation_samples, output_throttle=OUTPUT_THROTTLE, batch_size=BATCH_SIZE)
 
-# Test generator
-count = 0
-for X,y in generator(train_samples, BATCH_SIZE):
-    count = count+1
-    if count >= 2:
-        break
-print('Generator test: X.shape = {}, y.shape = {}'.format(X.shape, y.shape))
-#print(y[0:5])
+if __name__ == '__main__':
+#    simulator=sp.Popen('../carsim_mac.app/Contents/MacOS/carsim_mac')
+    parser = argparse.ArgumentParser(description='Train model')
+    parser.add_argument(
+        'model',
+        type=str,
+        help='Path to model h5 file. Model should be on the same path.'
+    )
 
-# Define the neural net
-model = Sequential()
-# Preprocess incoming data, centered around zero with small standard deviation 
-model.add(Lambda(lambda x: x/127.5 - 1.,
-        input_shape=(row, col, ch),
-        output_shape=(row, col, ch)))
-# Crop to focus on the part of the image containing the road
-model.add(Cropping2D(cropping=((70,25),(0,0))))
+    args = parser.parse_args()
 
-if OUTPUT_THROTTLE:
-    n_outputs = 2
-else:
-    n_outputs = 1
 
-model = models.NVIDIA_model(model, n_outputs)
+    samples = get_samples()
 
-model.compile(loss='mse', optimizer='adam')
+    # Split samples into training and validation
+    train_samples, validation_samples = train_test_split(samples, test_size=0.2)
 
-print(model.summary())
+    # compile and train the model using the generator function
+    train_generator = generator(train_samples, output_throttle=OUTPUT_THROTTLE, batch_size=BATCH_SIZE)
+    validation_generator = generator(validation_samples, output_throttle=OUTPUT_THROTTLE, batch_size=BATCH_SIZE)
 
-# Train model
-start_time = time.time()
-model.fit_generator(train_generator, steps_per_epoch= 
-            len(train_samples)/BATCH_SIZE-1, validation_data=validation_generator, 
-            validation_steps=floor(len(validation_samples)/BATCH_SIZE), epochs=3)
-end_time = time.time()
-print('Trained model in {:.2f} seconds'.format(end_time-start_time))
+    # Test generator
+    count = 0
+    for X,y in generator(train_samples, BATCH_SIZE):
+        count = count+1
+        if count >= 2:
+            break
+    print('Generator test: X.shape = {}, y.shape = {}'.format(X.shape, y.shape))
+    #print(y[0:5])
 
-# Save the model
-print("Saving model weights and configuration file.")
-model.save('model.h5')
+    # Define the neural net
+    model = Sequential()
+    # Preprocess incoming data, centered around zero with small standard deviation 
+    model.add(Lambda(lambda x: x/127.5 - 1.,
+            input_shape=(row, col, ch),
+            output_shape=(row, col, ch)))
+    # Crop to focus on the part of the image containing the road
+    model.add(Cropping2D(cropping=((70,25),(0,0))))
+
+    if OUTPUT_THROTTLE:
+        n_outputs = 2
+    else:
+        n_outputs = 1
+
+    if args.model == "NVIDIA":
+        model = models.NVIDIA_model(model, n_outputs)
+    else: 
+        print("Did not recognize model input: {}".format(args.model))
+        exit()
+
+    model.compile(loss='mse', optimizer='adam')
+
+    print(model.summary())
+
+    # Train model
+    start_time = time.time()
+    model.fit_generator(train_generator, steps_per_epoch= 
+                len(train_samples)/BATCH_SIZE-1, validation_data=validation_generator, 
+                validation_steps=floor(len(validation_samples)/BATCH_SIZE), epochs=3)
+    end_time = time.time()
+    print('Trained model in {:.2f} seconds'.format(end_time-start_time))
+
+    # Save the model
+    print("Saving model weights and configuration file.")
+    model.save('model.h5')
