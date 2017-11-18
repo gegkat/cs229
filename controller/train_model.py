@@ -16,6 +16,17 @@ import models
 import argparse
 from matplotlib import pyplot
 
+import sys
+
+#TO RUN:
+##python <filename> <architecture_type> <fraction_of_examples_to_test>
+##python train_models.py NVIDIA 0.3
+
+def split_train(lis,n):
+        num_sp=int(len(lis)*n)
+        return lis[:num_sp]
+
+
 # Constants
 ch, row, col = 3, 160, 320  # Trimmed image format
 BATCH_SIZE = 64 # Used in generator to load images in batches
@@ -24,12 +35,13 @@ BATCH_SIZE = 64 # Used in generator to load images in batches
 OUTPUT_THROTTLE = False
 
 
-def get_samples():
+def get_samples(num_split):
 
     # Hard-coded constants
     MAX_SAMPLES = 50000 # Used for testing to reduce # of files to use in training
     STEERING_CORRECTION = [0, 0.2, -0.2] # Steering correction for center, left, right images
-    DIR = './2017_11_17_slow/' # Directory for driving log and images
+    #DIR = './2017_11_17_slow/' # Directory for driving log and images
+    DIR = './2017_11_12 training data/' # Directory for driving log and images
 
     # Large turns are the biggest challenge for the model, but the majority of the samples
     # represent driving straight. The following constants are used to discard a portion of
@@ -48,6 +60,7 @@ def get_samples():
     end_time = time.time()
     print('Read {} lines if csv in {:.2f} seconds'.format(len(lines), end_time-start_time))
 
+    lines = sklearn.utils.shuffle(lines)
     # Preprocess the lines of the csv file
     # At the end of this step we will have a list of samples. Each sample
     # is a list with three eleements: 
@@ -56,8 +69,11 @@ def get_samples():
     #   3. A flag to flip or not flip the image
     # There will be 6 times the number of samples as there were lines in the
     # csv file minus some samples being removed for small steering angles
+    #num_split= 1
+    lines_split= split_train(lines,num_split)
+
     samples = []
-    for line in lines: 
+    for line in lines_split: 
 
         # Pull the steering angle from the 4th column
         orig_steering_angle = float(line[3]) 
@@ -145,11 +161,16 @@ if __name__ == '__main__':
         type=str,
         help='Path to model h5 file. Model should be on the same path.'
     )
+    parser.add_argument(
+        'example_frac',
+        type=float,
+        help='Path to model h5 file. Model should be on the same path.'
+    )
 
     args = parser.parse_args()
 
 
-    samples = get_samples()
+    samples = get_samples(args.example_frac)
 
     # Split samples into training and validation
     train_samples, validation_samples = train_test_split(samples, test_size=0.2)
