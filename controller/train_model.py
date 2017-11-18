@@ -256,6 +256,11 @@ if __name__ == '__main__':
     print("Saving model weights and configuration file.")
     model.save('model.h5')
 
+    with open('history.csv', 'w') as f:
+        for i in range(0, len(history.history['loss'])):
+            f.write("{}, {}\n".format(history.history['loss'][i], history.history['val_loss'][i]))
+
+
     pyplot.plot(history.history['loss'], label='training loss')
     pyplot.plot(history.history['val_loss'], label='val loss')
     pyplot.legend()
