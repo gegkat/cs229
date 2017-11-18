@@ -159,6 +159,8 @@ model = NVIDIA_model.NVIDIA_model(model, n_outputs)
 
 model.compile(loss='mse', optimizer='adam')
 
+print(model.summary())
+
 # Train model
 start_time = time.time()
 model.fit_generator(train_generator, steps_per_epoch= 
