@@ -54,6 +54,6 @@ def linear_regression(model, n_outputs=1):
 
     # NVIDIA architechture
     model.add(Flatten())
-    model.Dense(1,activation='linear')
+    model.add(Dense(1,activation='linear'))
 
     return model
