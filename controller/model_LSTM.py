@@ -1,3 +1,4 @@
+from math import *
 import os
 import csv
 from keras.models import Sequential
@@ -83,15 +84,15 @@ def buildLSTMModel(timesteps, cameraFormat, verbosity=0):
 
   # Several convolutional layers, each followed by ELU activation
   model.add(TimeDistributed(
-      Convolution2D(24, 5, 5, subsample=(2, 2), activation='relu')))
+      Convolution2D(24, 5, strides=(2, 2), activation='relu')))
   model.add(TimeDistributed(
-      Convolution2D(36, 5, 5, subsample=(2, 2), activation='relu')))
+      Convolution2D(36, 5, strides=(2, 2), activation='relu')))
   model.add(TimeDistributed(
-      Convolution2D(48, 5, 5, subsample=(2, 2), activation='relu')))
+      Convolution2D(48, 5, strides=(2, 2), activation='relu')))
   model.add(TimeDistributed(
-      Convolution2D(64, 3, 3, activation='relu')))
+      Convolution2D(64, 3, activation='relu')))
   model.add(TimeDistributed(
-      Convolution2D(64, 3, 3, activation='relu')))
+      Convolution2D(64, 3, activation='relu')))
 
 
   model.add(TimeDistributed(Flatten()))
@@ -111,6 +112,7 @@ def buildLSTMModel(timesteps, cameraFormat, verbosity=0):
   # Adam optimizer is a standard, efficient SGD optimization method
   # Loss function is mean squared error, standard for regression problems
   model.compile(optimizer="adam", loss="mse")
+  return model
 
 
 def buildLSTMModel_fast(timesteps, cameraFormat, verbosity=0):
@@ -154,11 +156,11 @@ def buildLSTMModel_fast(timesteps, cameraFormat, verbosity=0):
 
   # Several convolutional layers, each followed by ELU activation
   model.add(TimeDistributed(
-      Convolution2D(12, 5, 5, subsample=(2, 2), activation='relu')))
+      Convolution2D(12, 5, strides=(2, 2), activation='relu')))
   model.add(TimeDistributed(
-      Convolution2D(18, 5, 5, subsample=(2, 2), activation='relu')))
+      Convolution2D(18, 5, strides=(2, 2), activation='relu')))
   model.add(TimeDistributed(
-      Convolution2D(32, 3, 3, activation='relu')))
+      Convolution2D(32, 3, activation='relu')))
 
 
   model.add(TimeDistributed(Flatten()))
@@ -197,7 +199,7 @@ def buildLSTMModel_fast(timesteps, cameraFormat, verbosity=0):
 ch, row, col = 3, 160, 320  # Trimmed image format
 BATCH_SIZE = 200 # Used in generator to load images in batches
 TIME_STEPS = 5
-MAX_SAMPLES = 1000 # Used for testing to reduce # of files to use in training
+MAX_SAMPLES = 50000 # Used for testing to reduce # of files to use in training
 STEERING_CORRECTION = [0, 0.2, -0.2] # Steering correction for center, left, right images
 DIR = './2017_11_12 training data/' # Directory for driving log and images
 # DIR = './2017_11_17_slow/'
@@ -363,17 +365,17 @@ print('Generator test: X.shape = {}, y.shape = {}'.format(X.shape, y.shape))
 
 # volumes_per_batch = BATCH_SIZE / TIME_STEPS
 
-model = buildLSTMModel_fast(TIME_STEPS, cameraFormat=(row, col, ch), verbosity=1)
+model = buildLSTMModel(TIME_STEPS, cameraFormat=(row, col, ch), verbosity=1)
 
 
 # Train model
 start_time = time.time()
-model.fit_generator(train_generator, samples_per_epoch= 
-            len(train_samples), validation_data=validation_generator, 
-            nb_val_samples=len(validation_samples), nb_epoch=3)
+model.fit_generator(train_generator, steps_per_epoch= 
+            len(train_samples)/BATCH_SIZE-1, validation_data=validation_generator, 
+            validation_steps=floor(len(validation_samples)/BATCH_SIZE), epochs=3)
 end_time = time.time()
 print('Trained model in {:.2f} seconds'.format(end_time-start_time))
 
 # Save the model
 print("Saving model weights and configuration file.")
-model.save('model.h5')
+model.save('model_LSTM.h5')
