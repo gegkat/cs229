@@ -15,6 +15,9 @@ import random
 import models
 import argparse
 from matplotlib import pyplot
+import pickle
+from datetime import datetime
+import json
 
 import sys
 
@@ -25,6 +28,19 @@ import sys
 def split_train(lis,n):
         num_sp=int(len(lis)*n)
         return lis[:num_sp]
+
+
+def get_timestamp():
+    return datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+
+def mkdir_unique(timestamp, prefix=''):
+    mydir = os.path.join(
+        os.getcwd(), 
+        prefix + '_' + timestamp)
+
+    os.makedirs(mydir)
+
+    return mydir
 
 
 # Constants
@@ -245,28 +261,41 @@ if __name__ == '__main__':
 
     train_steps_per_epoch = floor(len(train_samples)/args.batchsize)
     val_steps_per_epoch = floor(len(validation_samples)/args.batchsize)
-    val_steps_per_epoch = 1
+    if val_steps_per_epoch == 0:
+        val_steps_per_epoch = 1
     history = model.fit_generator(train_generator, steps_per_epoch= train_steps_per_epoch
                 , validation_data=validation_generator, 
                 validation_steps= val_steps_per_epoch, epochs=args.epochs)
     end_time = time.time()
     print('Trained model in {:.2f} seconds'.format(end_time-start_time))
 
+    timestamp = get_timestamp()
+    udir = mkdir_unique(timestamp, args.model)
+
     # Save the model
     print("Saving model weights and configuration file.")
-    model.save('model.h5')
+    model.save(os.path.join(udir,'model_' + args.model + '_' + timestamp + '.h5'))
 
-    with open('history.csv', 'w') as f:
+    with open(os.path.join(udir, 'history.csv'), 'w') as f:
         for i in range(0, len(history.history['loss'])):
             f.write("{}, {}\n".format(history.history['loss'][i], history.history['val_loss'][i]))
 
+    with open(os.path.join(udir, 'train_history_dict.pickle'), 'wb') as file_pi:
+        pickle.dump(history.history, file_pi)
+
+    with open(os.path.join(udir, 'config.log'), 'w') as f:
+        f.write(json.dumps(vars(args)))
+        model.summary(print_fn=lambda x: f.write(x + '\n'))
+
+    with open(os.path.join(udir, 'model.json'), 'w') as f:
+        f.write(json.dumps(model.to_json()))
 
     pyplot.plot(history.history['loss'], label='training loss')
     pyplot.plot(history.history['val_loss'], label='val loss')
     pyplot.legend()
     pyplot.xlabel('# Epochs')
     pyplot.ylabel('MSE Loss')
-    pyplot.savefig('loss_vs_epoch.png', dpi=400)
+    pyplot.savefig(os.path.join(udir, 'loss_vs_epoch.png'), dpi=400)
     if args.showplot == 1:
         pyplot.show()
 
