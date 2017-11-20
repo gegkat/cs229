@@ -2,9 +2,13 @@ clear all;
 close all; 
 clc;
 
-telem_output = load('drive.out'); 
+% telem_output = load('drive.out'); 
+% telem_output = load('model_simple_2017-11-19_13-31-33.h5.telem');
+telem_output = load('model_cnn_2017-11-19_13-36-39.h5_100mph.telem');
 
-flds = {'z', 'steeringAngle', 'speed', 'throttle', 'x', 'heading'};
+% flds = {'z', 'steeringAngle', 'speed', 'throttle', 'x', 'heading'};
+flds = {'steering_angle', 'throttle', 'speed', 'x', 'z', 'heading'};
+
 for i = 1:length(flds)
     data.(flds{i}) = telem_output(:,i);
 end
