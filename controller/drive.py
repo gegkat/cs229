@@ -46,11 +46,6 @@ class SimplePIController:
         return self.Kp * self.error + self.Ki * self.integral
 
 
-controller = SimplePIController(0.1, 0.002)
-set_speed = 12 #9
-controller.set_desired(set_speed)
-
-
 @sio.on('telemetry')
 def telemetry(sid, data):
     if data:
@@ -58,10 +53,12 @@ def telemetry(sid, data):
         #for key in data:
         #    print(key)
 
-        for key in data:
-            if not key == "image":
-                sys.stdout.write('{}, '.format(data[key]))
-        sys.stdout.write('\n')
+        with open(out_file, 'a') as f: 
+            keys = ['steering_angle', 'throttle', 'speed', 'x', 'z', 'heading']
+            for key in keys:
+                f.write('{}, '.format(data[key]))
+            f.write('\n')
+
         #print('end')
         # The current steering angle of the car
         steering_angle = data["steering_angle"]
@@ -85,9 +82,9 @@ def telemetry(sid, data):
         send_control(steering_angle, throttle)
 
         # save frame
-        if args.image_folder != '':
+        if args.img_dir != '':
             timestamp = datetime.utcnow().strftime('%Y_%m_%d_%H_%M_%S_%f')[:-3]
-            image_filename = os.path.join(args.image_folder, timestamp)
+            image_filename = os.path.join(args.img_dir, timestamp)
             image.save('{}.jpg'.format(image_filename))
     else:
         # NOTE: DON'T EDIT THIS.
@@ -111,6 +108,7 @@ def send_control(steering_angle, throttle):
 
 
 if __name__ == '__main__':
+
 #    simulator=sp.Popen('../carsim_mac.app/Contents/MacOS/carsim_mac')
     parser = argparse.ArgumentParser(description='Remote Driving')
     parser.add_argument(
@@ -119,13 +117,29 @@ if __name__ == '__main__':
         help='Path to model h5 file. Model should be on the same path.'
     )
     parser.add_argument(
-        'image_folder',
+        '--img_dir',
         type=str,
         nargs='?',
         default='',
         help='Path to image folder. This is where the images from the run will be saved.'
     )
+
+    parser.add_argument(
+        '--speed',
+        type=int,
+        default=12,
+        help='Path to image folder. This is where the images from the run will be saved.'
+    )
     args = parser.parse_args()
+
+    out_file = args.model + '_' + str(args.speed) + 'mph.telem'
+    with open(out_file, 'w') as f:
+        # just clear contents of out_file
+        pass
+
+
+    controller = SimplePIController(0.1, 0.002)
+    controller.set_desired(args.speed)
 
     # check that model Keras version is same as local Keras version
     f = h5py.File(args.model, mode='r')
@@ -138,13 +152,13 @@ if __name__ == '__main__':
 
     model = load_model(args.model)
 
-    if args.image_folder != '':
-        print("Creating image folder at {}".format(args.image_folder))
-        if not os.path.exists(args.image_folder):
-            os.makedirs(args.image_folder)
+    if args.img_dir != '':
+        print("Creating image folder at {}".format(args.img_dir))
+        if not os.path.exists(args.img_dir):
+            os.makedirs(args.img_dir)
         else:
-            shutil.rmtree(args.image_folder)
-            os.makedirs(args.image_folder)
+            shutil.rmtree(args.img_dir)
+            os.makedirs(args.img_dir)
         print("RECORDING THIS RUN ...")
     else:
         print("NOT RECORDING THIS RUN ...")
