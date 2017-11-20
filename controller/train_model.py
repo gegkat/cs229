@@ -14,6 +14,8 @@ import random
 
 import models
 import argparse
+import matplotlib
+matplotlib.use("Agg")#for cluster which doesn't have a display
 from matplotlib import pyplot
 import pickle
 from datetime import datetime
