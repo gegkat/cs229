@@ -14,20 +14,20 @@ def xtrack(x,z,x_ref,z_ref):
 		fwarg=0
 	else:
 		fwarg=arg+1
-	print("fwarg="+str(fwarg))
+	#print("fwarg="+str(fwarg))
 	vec1=np.array([x-x_ref[arg], z-z_ref[arg]])
 	vec2=np.array([x_ref[fwarg]-x_ref[arg],z_ref[fwarg]-z_ref[arg]])
 	#dp=np.dot(vec1,vec2)
 	if(np.dot(vec1,vec2)>0):
 		#narg=arg+1
 		narg=fwarg
-		print("next")
+		#print("next")
 	else:
 		narg=arg-1
-		print("previous")
-	print("arg:"+str(arg)+"nextarg:"+str (narg))
-	print("x:"+str(x)+"z:"+str (z))
-	print("point arg:"+str(x_ref[arg])+","+str(z_ref[arg])+"point nextarg:"+str (x_ref[narg])+","+str(z_ref[narg]))
+		#print("previous")
+	#print("arg:"+str(arg)+"nextarg:"+str (narg))
+	#print("x:"+str(x)+"z:"+str (z))
+	#print("point arg:"+str(x_ref[arg])+","+str(z_ref[arg])+"point nextarg:"+str (x_ref[narg])+","+str(z_ref[narg]))
 	h=(x-x_ref[arg])**2+(z-z_ref[arg])**2
 	v1=np.array([x-x_ref[arg],z-z_ref[arg]])
 	v2=np.array([x_ref[narg]-x_ref[arg],z_ref[narg]-z_ref[arg]])
@@ -36,7 +36,7 @@ def xtrack(x,z,x_ref,z_ref):
 	den=((z_ref[narg]-z_ref[arg])**2+(x_ref[narg]-x_ref[arg])**2)
 	#d_sq=(num/den)**(0.5)
 	d_sq=(h-b)**(0.5)
-	print("dist from center:"+str(d_sq))
+	#print("dist from center:"+str(d_sq))
 	return(d_sq,b)
 
 #OPENING WAYPOINT FILE
