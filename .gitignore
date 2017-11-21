@@ -22,7 +22,19 @@ IMG
 driving_log.csv
 Archive.zip
 sdc.app
+*.zip
+*_img/
 
 # Ignore all textures and images etc.
 *.png
 *.meta
+
+# Ignore pyc
+*.pyc
+
+# Ignore some specific things in my unity
+KajamansRoads/
+SimpleTrack.unity
+exampleRoad_new.unity
+New Terrain.asset
+UnityPackageManager

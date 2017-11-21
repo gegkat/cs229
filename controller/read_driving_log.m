@@ -32,3 +32,20 @@ figure; hold all;
 plot(M(:,5), M(:,6), '-')
 waypoints = load('lake_track_waypoints.csv');
 plot(waypoints(:,1), waypoints(:,2), '-x')
+
+sa = M(:,1);
+figure;
+subplot(121)
+histogram(sa, 20)
+xlabel('steering input')
+xlim([-1 1])
+title('Raw training data')
+
+sa_aug = [sa; sa+0.2; sa-0.2];
+sa_aug = [sa_aug; -sa_aug];
+subplot(122)
+histogram(sa_aug, 20)
+xlabel('steering input')
+xlim([-1 1])
+title('Augmented training data')
+savepdf('steer_train')

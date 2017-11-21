@@ -117,10 +117,10 @@ if __name__ == '__main__':
         help='Path to model h5 file. Model should be on the same path.'
     )
     parser.add_argument(
-        '--img_dir',
-        type=str,
+        '--record',
+        type=int,
         nargs='?',
-        default='',
+        default=0,
         help='Path to image folder. This is where the images from the run will be saved.'
     )
 
@@ -136,6 +136,11 @@ if __name__ == '__main__':
     with open(out_file, 'w') as f:
         # just clear contents of out_file
         pass
+
+    # Default img_dir is empty, but if record flag is true then set the dir
+    args.img_dir = ''
+    if args.record == 1:
+        args.img_dir = args.model + '_img'
 
 
     controller = SimplePIController(0.1, 0.002)

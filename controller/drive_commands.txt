@@ -1,0 +1,19 @@
+# Linear
+python drive.py linear/learning_curve/linear_frac_100/model_linear_2017-11-19_19-33-36.h5 --record 1
+python video.py linear/learning_curve/linear_frac_100/model_linear_2017-11-19_19-33-36.h5_img
+
+# Simple
+python drive.py simple/learning_curve/simple_frac_100/model_simple_2017-11-19_13-31-33.h5 --record 1
+python video.py simple/learning_curve/simple_frac_100/model_simple_2017-11-19_13-31-33.h5_img
+
+# CNN
+python drive.py cnn/learning_curve/cnn_frac_100/model_cnn_2017-11-19_13-36-39.h5 --record 1
+python video.py cnn/learning_curve/cnn_frac_100/model_cnn_2017-11-19_13-36-39.h5_img 
+
+# Complex
+python drive.py complex/learning_curve/complex_frac_100/model_complex_2017-11-19_13-42-23.h5 --record 1
+python video.py complex/learning_curve/complex_frac_100/model_complex_2017-11-19_13-42-23.h5_img
+
+# NVIDIA
+python drive.py NVIDIA/learning_curve/NVIDIA_frac_100/model_NVIDIA_2017-11-19_13-45-50.h5 --record 1
+python video.py NVIDIA/learning_curve/NVIDIA_frac_100/model_NVIDIA_2017-11-19_13-45-50.h5_img

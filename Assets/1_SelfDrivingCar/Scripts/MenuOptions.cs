@@ -10,7 +10,7 @@ public class MenuOptions : MonoBehaviour
 
     public void Start ()
     {
-		SceneManager.LoadScene("LakeTrackTraining");
+		SceneManager.LoadScene("LakeTrackAutonomous");
 //         outlines = GetComponentsInChildren<Outline>();
 // 		Debug.Log ("in menu script "+outlines.Length);
 // 		if (outlines.Length > 0) 

@@ -278,7 +278,7 @@ if __name__ == '__main__':
 
     # Save the model
     print("Saving model weights and configuration file.")
-    model.save(os.path.join(udir,'model_' + args.model + '_' + timestamp + '.h5'))
+    model.save(os.path.join(udir,'model_' + args.model + '.h5'))
 
     with open(os.path.join(udir, 'history.csv'), 'w') as f:
         for i in range(0, len(history.history['loss'])):
