@@ -24,6 +24,49 @@ app = Flask(__name__)
 model = None
 prev_image_array = None
 
+def xtrack(x,z,x_ref,z_ref):
+	#finding the nearest waypoint for each given x,z
+	near=np.zeros(np.size(x_ref))
+	for i in range(0, np.size(x_ref)):
+		near[i]= np.square(float(x)-x_ref[i])+ np.square(float(z)-z_ref[i])
+	arg=np.argmin(near)
+	#base_x=x_ref[:arg] 	
+	#base_z=z_ref[:arg]
+	#s=0 
+	#for k in range(0,arg-1):
+	#	s=s+(x_ref[k+1]-x_ref[k])**2+ (z_ref[k+1]-z_ref[k])**2	
+	if(arg==(np.size(x_ref)-1)):
+		fwarg=0
+	else:
+		fwarg=arg+1
+	#print("fwarg="+str(fwarg))
+	vec1=np.array([x-x_ref[arg], z-z_ref[arg]])
+	vec2=np.array([x_ref[fwarg]-x_ref[arg],z_ref[fwarg]-z_ref[arg]])
+	l=int(0)
+	if(np.cross(vec2,vec1)<0):
+		l=1
+	#dp=np.dot(vec1,vec2)
+	if(np.dot(vec1,vec2)>0):
+		#narg=arg+1
+		narg=fwarg
+		#print("next")
+	else:
+		narg=arg-1
+		#print("previous")
+	#print("arg:"+str(arg)+"nextarg:"+str (narg))
+	#print("x:"+str(x)+"z:"+str (z))
+	#print("point arg:"+str(x_ref[arg])+","+str(z_ref[arg])+"point nextarg:"+str (x_ref[narg])+","+str(z_ref[narg]))
+	h=(x-x_ref[arg])**2+(z-z_ref[arg])**2
+	v1=np.array([x-x_ref[arg],z-z_ref[arg]])
+	v2=np.array([x_ref[narg]-x_ref[arg],z_ref[narg]-z_ref[arg]])
+	b=((np.dot(v1,v2))/(np.linalg.norm(v2)))**2
+	#num=(abs((z_ref[narg]-z_ref[arg])*(x)-(x_ref[narg]-x_ref[arg])*(z)+ (x_ref[narg]*z_ref[arg]-z_ref[narg]*x_ref[arg])))**2
+	#den=((z_ref[narg]-z_ref[arg])**2+(x_ref[narg]-x_ref[arg])**2)
+	#d_sq=(num/den)**(0.5)
+	d_sq=(h-b)**(0.5)
+	#print("dist from center:"+str(d_sq))
+	return(d_sq,l)
+
 
 class SimplePIController:
     def __init__(self, Kp, Ki):
@@ -48,6 +91,20 @@ class SimplePIController:
 
 @sio.on('telemetry')
 def telemetry(sid, data):
+    f1= 'lake_track_waypoints.csv'
+    with open(f1) as f:
+    	content= f.readlines()
+    	content=[m.strip() for m in content]
+	#print(content)
+	#getting x and z from the lines
+    	x=[i.split(',',1)[0] for i in content]
+    	z=[i.split(',',1)[1] for i in content]
+    f.close()
+
+#np array creation
+    x_ref=np.asarray(x,dtype=float)
+    z_ref=np.asarray(z,dtype=float)
+
     if data:
         #print('start')
         #for key in data:
@@ -60,6 +117,8 @@ def telemetry(sid, data):
             f.write('\n')
 
         #print('end')
+        car_x=data[key].split(',',6)[3]
+        car_z=data[key].split(',',6)[4]
         # The current steering angle of the car
         steering_angle = data["steering_angle"]
         # The current throttle of the car
@@ -72,7 +131,15 @@ def telemetry(sid, data):
         image_array = np.asarray(image)
         model_output = model.predict(image_array[None, :, :, :], batch_size=1) 
         model_output = model_output[0]
-        steering_angle = float(model_output[0])
+	#ADDITION, this is for the case of changing the steering when the car is at extreme end of the road
+	if(xtrack(car_x,car_z,x_ref,z_ref)>=2.75 and xtrack(car_x,car_z,x_ref,z_ref)<=3 and l==Bool(False) ):
+        	steering_angle = float(3.00)
+	elif(xtrack()>=2.75 and xtrack()<=3 and l==Bool(False) ):
+        	steering_angle = float(-3.00)
+	else:
+        	steering_angle = float(model_output[0])
+ 
+        #steering_angle = float(model_output[0])
         if len(model_output) > 1:
             throttle = float(model_output[0][1])
         else:
