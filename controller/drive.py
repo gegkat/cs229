@@ -132,9 +132,10 @@ def telemetry(sid, data):
         model_output = model.predict(image_array[None, :, :, :], batch_size=1) 
         model_output = model_output[0]
 	#ADDITION, this is for the case of changing the steering when the car is at extreme end of the road
-	if(xtrack(car_x,car_z,x_ref,z_ref)>=2.75 and xtrack(car_x,car_z,x_ref,z_ref)<=3 and l==Bool(False) ):
+	cte,l=xtrack(car_x,car_z,x_ref,z_ref)
+	if(cte>=2.75 and cte<=3 and l==1):
         	steering_angle = float(3.00)
-	elif(xtrack()>=2.75 and xtrack()<=3 and l==Bool(False) ):
+	elif(cte>=2.75 and cte<=3 and l==0):
         	steering_angle = float(-3.00)
 	else:
         	steering_angle = float(model_output[0])
