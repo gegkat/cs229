@@ -117,8 +117,8 @@ def telemetry(sid, data):
             f.write('\n')
 
         #print('end')
-        car_x=data[key].split(',',6)[3]
-        car_z=data[key].split(',',6)[4]
+        car_x=data["x"]
+        car_z=data["z"]
         # The current steering angle of the car
         steering_angle = data["steering_angle"]
         # The current throttle of the car
@@ -131,6 +131,7 @@ def telemetry(sid, data):
         image_array = np.asarray(image)
         model_output = model.predict(image_array[None, :, :, :], batch_size=1) 
         model_output = model_output[0]
+
 	#ADDITION, this is for the case of changing the steering when the car is at extreme end of the road
 	cte,l=xtrack(car_x,car_z,x_ref,z_ref)
 	if(cte>=2.75 and cte<=3 and l==1):
