@@ -39,7 +39,7 @@ namespace UnityStandardAssets.Vehicles.Car
         [SerializeField] private float m_MaxHandbrakeTorque;
         [SerializeField] private float m_Downforce = 100f;
         [SerializeField] private SpeedType m_SpeedType;
-        [SerializeField] private float m_Topspeed = 200;
+        [SerializeField] private float m_Topspeed = 20;
         [SerializeField] private static int NoOfGears = 5;
         [SerializeField] private float m_RevRangeBoundary = 1f;
         [SerializeField] private float m_SlipLimit;
@@ -273,21 +273,21 @@ namespace UnityStandardAssets.Vehicles.Car
 
         private void CapSpeed ()
         {
-            // float speed = m_Rigidbody.velocity.magnitude;
-            // switch (m_SpeedType) {
-            // case SpeedType.MPH:
+            float speed = m_Rigidbody.velocity.magnitude;
+            switch (m_SpeedType) {
+                case SpeedType.MPH:
 
-            //     speed *= 2.23693629f;
-            //     if (speed > m_Topspeed)
-            //    //     m_Rigidbody.velocity = (m_Topspeed / 2.23693629f) * m_Rigidbody.velocity.normalized;
-            //     break;
+                    speed *= 2.23693629f;
+                    if (speed > m_Topspeed)
+                       m_Rigidbody.velocity = (m_Topspeed / 2.23693629f) * m_Rigidbody.velocity.normalized;
+                    break;
 
-            // case SpeedType.KPH:
-            //     speed *= 3.6f;
-            //     if (speed > m_Topspeed)
-            //      //   m_Rigidbody.velocity = (m_Topspeed / 3.6f) * m_Rigidbody.velocity.normalized;
-            //     break;
-            // }
+                case SpeedType.KPH:
+                    speed *= 3.6f;
+                    if (speed > m_Topspeed)
+                       m_Rigidbody.velocity = (m_Topspeed / 3.6f) * m_Rigidbody.velocity.normalized;
+                    break;
+            }
         }
 
 

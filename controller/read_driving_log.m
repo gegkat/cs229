@@ -49,3 +49,22 @@ xlabel('steering input')
 xlim([-1 1])
 title('Augmented training data')
 savepdf('steer_train')
+
+return
+
+% filter
+sa_filt = zeros(size(sa));
+alpha = 0.1;
+for i = 2:length(sa)
+%     sa_filt(i) = sa_filt(i) + alpha * (sa(i) - sa_filt(i-1));
+%     sa_filt(i) = alpha * (sa(i-1) + sa(i));
+    sa_filt(i) = alpha*sa(i) + (1-alpha)*sa_filt(i-1);
+
+end
+figure; hold all; 
+plot(sa, '-x')
+plot(sa_filt, '-o')
+
+figure; hold all; 
+plot(sort(sa))
+plot(sort(sa_filt))
