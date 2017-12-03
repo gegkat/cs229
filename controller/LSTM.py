@@ -152,7 +152,7 @@ def generator(samples, dimensions,output_throttle=False,batch_size=32):
 
 
 # Constants
-1, row, col = 3, 160, 320  # Trimmed image format
+ch, row, col = 1, 160, 320  # Trimmed image format
 
 # Include throttle in output of generator
 OUTPUT_THROTTLE = False
