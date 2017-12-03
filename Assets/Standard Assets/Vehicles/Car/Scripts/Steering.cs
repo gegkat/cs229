@@ -14,6 +14,10 @@ namespace UnityStandardAssets.Vehicles.Car
         public bool Cruising { get; private set; } // cruise control
 		public bool mouse_hold;
 		public float mouse_start;
+		public float alpha_H;
+		public float prev_H;
+		public float alpha_V;
+		public float prev_V;
 
         // Use this for initialization
         public void Start()
@@ -22,11 +26,18 @@ namespace UnityStandardAssets.Vehicles.Car
             V = 0f;
             Cruising = false;
 			mouse_hold = false;
+			alpha_H = 0.05f;
+			prev_H = 0f;
+			alpha_V = 0.02f;
+			prev_H = 0f;
         }
 
         // Update is called once per frame
         public void UpdateValues()
         {
+        	prev_H = H; 
+        	prev_V = V;
+
             // Cruise Control
             if (Input.GetKeyDown(KeyCode.Space))
             {
@@ -85,6 +96,10 @@ namespace UnityStandardAssets.Vehicles.Car
 				H = CrossPlatformInputManager.GetAxis ("Horizontal");
 
             }
+
+            // first order exponential low pass filter
+            H = alpha_H*H + (1-alpha_H) * prev_H;
+            V = alpha_V*V + (1 - alpha_V) * prev_V;
 				
         }
     }
