@@ -1,0 +1,74 @@
+roushan@rice14:~/ml229/cs229/controller$ python train_model_expt.py 2017_11_17_slow/ NVIDIA --frac 1 --epochs 15 --showplot 0 --batchsize 800
+Using TensorFlow backend.
+/home/aroushan/anaconda3/envs/cs229/lib/python3.6/importlib/_bootstrap.py:219: RuntimeWarning: compiletime version 3.5 of module 'tensorflow.python.framework.fast_tensor_util' does not match runtime version 3.6
+  return f(*args, **kwds)
+Start read csv
+Read 6279 lines if csv in 0.06 seconds
+# SAMPLES: 33114
+Generator test: X.shape = (800, 160, 320, 1), y.shape = (800,)
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #
+=================================================================
+lambda_1 (Lambda)            (None, 160, 320, 1)       0
+_________________________________________________________________
+cropping2d_1 (Cropping2D)    (None, 65, 320, 1)        0
+_________________________________________________________________
+conv2d_1 (Conv2D)            (None, 31, 158, 24)       624
+_________________________________________________________________
+conv2d_2 (Conv2D)            (None, 14, 77, 36)        21636
+_________________________________________________________________
+conv2d_3 (Conv2D)            (None, 5, 37, 48)         43248
+_________________________________________________________________
+conv2d_4 (Conv2D)            (None, 3, 35, 64)         27712
+_________________________________________________________________
+conv2d_5 (Conv2D)            (None, 1, 33, 64)         36928
+_________________________________________________________________
+flatten_1 (Flatten)          (None, 2112)              0
+_________________________________________________________________
+dense_1 (Dense)              (None, 100)               211300
+_________________________________________________________________
+dense_2 (Dense)              (None, 50)                5050
+_________________________________________________________________
+dense_3 (Dense)              (None, 10)                510
+_________________________________________________________________
+dense_4 (Dense)              (None, 1)                 11
+=================================================================
+Total params: 347,019
+Trainable params: 347,019
+Non-trainable params: 0
+_________________________________________________________________
+None
+Epoch 1/15
+2017-12-02 20:55:47.354859: I tensorflow/core/platform/cpu_feature_guard.cc:137] Your CPU supports instructions that this TensorFlow binary was not compiled to use: SSE4.1 SSE4.2
+33/33 [==============================] - 305s 9s/step - loss: 0.0219 - val_loss: 0.0124
+Epoch 2/15
+33/33 [==============================] - 250s 8s/step - loss: 0.0096 - val_loss: 0.0080
+Epoch 3/15
+33/33 [==============================] - 245s 7s/step - loss: 0.0073 - val_loss: 0.0074
+Epoch 4/15
+33/33 [==============================] - 260s 8s/step - loss: 0.0067 - val_loss: 0.0062
+Epoch 5/15
+33/33 [==============================] - 266s 8s/step - loss: 0.0061 - val_loss: 0.0064
+Epoch 6/15
+33/33 [==============================] - 262s 8s/step - loss: 0.0056 - val_loss: 0.0056
+Epoch 7/15
+33/33 [==============================] - 258s 8s/step - loss: 0.0051 - val_loss: 0.0056
+Epoch 8/15
+33/33 [==============================] - 260s 8s/step - loss: 0.0050 - val_loss: 0.0056
+Epoch 9/15
+33/33 [==============================] - 260s 8s/step - loss: 0.0046 - val_loss: 0.0053
+Epoch 10/15
+33/33 [==============================] - 270s 8s/step - loss: 0.0043 - val_loss: 0.0055
+Epoch 11/15
+33/33 [==============================] - 268s 8s/step - loss: 0.0040 - val_loss: 0.0052
+Epoch 12/15
+33/33 [==============================] - 259s 8s/step - loss: 0.0037 - val_loss: 0.0053
+Epoch 13/15
+33/33 [==============================] - 257s 8s/step - loss: 0.0036 - val_loss: 0.0052
+Epoch 14/15
+33/33 [==============================] - 257s 8s/step - loss: 0.0032 - val_loss: 0.0051
+Epoch 15/15
+33/33 [==============================] - 259s 8s/step - loss: 0.0031 - val_loss: 0.0052
+Trained model in 3935.78 seconds
+Saving model weights and configuration file.
+
