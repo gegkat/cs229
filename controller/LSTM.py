@@ -130,7 +130,7 @@ def generator(samples, dimensions,output_throttle=False,batch_size=32):
                 do_flip_flag = batch_sample[4]
                 image=np.zeros([timesteps,rows,cols,ch])
                 for i in range(0,timesteps):
-                    read_image=cv2.imread(batch_sample[0][i])
+                    read_image=cv2.imread(batch_sample[0][i],0)
                     if do_flip_flag:
                         read_image = cv2.flip(read_image, 1)
                     image[i,:,:,:] =read_image
@@ -152,7 +152,7 @@ def generator(samples, dimensions,output_throttle=False,batch_size=32):
 
 
 # Constants
-ch, row, col = 3, 160, 320  # Trimmed image format
+1, row, col = 3, 160, 320  # Trimmed image format
 
 # Include throttle in output of generator
 OUTPUT_THROTTLE = False
