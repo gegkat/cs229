@@ -231,10 +231,10 @@ if __name__ == '__main__':
     print('Trained model in {:.2f} seconds'.format(end_time-start_time))
 
     timestamp = get_timestamp()
-    udir = mkdir_unique(timestamp, args.model)
+    udir = mkdir_unique(timestamp, "LSTM")
     # Save the model
     print("Saving model weights and configuration file.")
-    model.save(os.path.join(udir,'model_' + args.model + '.h5'))
+    model.save(os.path.join(udir,'model_LSTM' + '.h5'))
 
     with open(os.path.join(udir, 'history.csv'), 'w') as f:
         for i in range(0, len(history.history['loss'])):
