@@ -31,7 +31,7 @@ import sklearn
 from sklearn.model_selection import train_test_split
 import random
 
-def LSTM(model,no_outputs,dimensions, verbosity=0):
+def LSTM_model(model,no_outputs,dimensions, verbosity=0):
     timesteps, ch, row, col = dimensions
     model = Sequential()
     if timesteps == 1:
@@ -63,22 +63,22 @@ def LSTM(model,no_outputs,dimensions, verbosity=0):
 
     model.add(TimeDistributed(Flatten()))
 # Takes in sequences and returns entire predicted sequences
-    model.add(LSTM(512,return_sequences=True))
+#    model.add(LSTM(512,return_sequences=True))
 #Does not return sequences, just takes final output
-    model.add(LSTM(100,return_sequences=False))
+    model.add(LSTM(100))
 #Fully connected layers on final output.
     model.add(Dense(100))
     model.add(Dense(50))
     model.add(Dense(10))
 #Predict only steering for now
-    model.add(Dense(n_outputs))
+    model.add(Dense(no_outputs))
   # Adam optimizer is a standard, efficient SGD optimization method
   # Loss function is mean squared error, standard for regression problems
     model.compile(optimizer="adam", loss="mse")
     if verbosity > 1:
         config = model.get_config()
-    for layerSpecs in config:
-        pprint(layerSpecs)
+        for layerSpecs in config:
+            pprint(layerSpecs)
     return model
 
 def NVIDIA(model, n_outputs=1):

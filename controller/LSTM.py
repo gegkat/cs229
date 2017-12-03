@@ -38,7 +38,7 @@ def get_timestamp():
 def mkdir_unique(timestamp, prefix=''):
     mydir = os.path.join(
         os.getcwd(), 
-        prefix + '_' + timestamp)
+        prefix +'LSTM'+ '_' + timestamp)
 
     os.makedirs(mydir)
 
@@ -93,7 +93,7 @@ def get_samples(data_dir, num_split, timesteps):
         images_right.append(file_name)
 
     samples=[]
-    for i in range(0,len(samples_center)-timesteps):
+    for i in range(0,len(lines)-timesteps):
         orig_steering_angle = float(lines_split[i][3])
         orig_throttle = float(lines_split[i][4])
         orig_brake = float(lines_split[i][5])
@@ -110,7 +110,7 @@ def get_samples(data_dir, num_split, timesteps):
 
 
 # Define generator function for use by keras fit_generator function
-def generator(samples, output_throttle=False, batch_size=32,dimensions):
+def generator(samples, dimensions,output_throttle=False,batch_size=32):
     num_samples = len(samples)
     timesteps,rows,cols,ch=dimensions
     while 1: # Loop forever so the generator never terminates
@@ -128,7 +128,7 @@ def generator(samples, output_throttle=False, batch_size=32,dimensions):
             speeds = []
             for batch_sample in batch_samples:
                 do_flip_flag = batch_sample[4]
-                image=np.zeros(timesteps,rows,cols,ch)
+                image=np.zeros([timesteps,rows,cols,ch])
                 for i in range(0,timesteps):
                     read_image=cv2.imread(batch_sample[0][i])
                     if do_flip_flag:
@@ -200,13 +200,13 @@ if __name__ == '__main__':
                         )
 
     args = parser.parse_args()
-    samples = get_samples(args.data_dir, args.frac,timesteps)
+    samples = get_samples(args.data_dir, args.frac,args.timesteps)
     # Split samples into training and validation
     train_samples, validation_samples = train_test_split(samples, test_size=0.2)
-
+    timesteps=args.timesteps
     # compile and train the model using the generator function
-    train_generator = generator(train_samples, output_throttle=OUTPUT_THROTTLE, batch_size=args.batchsize,dimensions=(timesteps,rows,cols,ch))
-    validation_generator = generator(validation_samples, output_throttle=OUTPUT_THROTTLE, batch_size=args.batchsize,dimensions=(timesteps,rows,cols,ch))
+    train_generator = generator(train_samples,(timesteps,row,col,ch), output_throttle=OUTPUT_THROTTLE,batch_size=args.batchsize)
+    validation_generator = generator(validation_samples,(timesteps,row,col,ch), output_throttle=OUTPUT_THROTTLE,batch_size=args.batchsize)
 
     if OUTPUT_THROTTLE:
         n_outputs = 2
@@ -214,7 +214,7 @@ if __name__ == '__main__':
         n_outputs = 1
 
 	model=Sequential()
-	model=models.LSTM(model,n_outputs,dimensions,0)
+	model=models.LSTM_model(model,n_outputs,(timesteps,ch,row,col),0)
     model.compile(loss='mse', optimizer='adam')
     print(model.summary())
 
