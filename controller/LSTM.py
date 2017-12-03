@@ -133,7 +133,7 @@ def generator(samples, dimensions,output_throttle=False,batch_size=32):
                     read_image=cv2.imread(batch_sample[0][i],0)
                     if do_flip_flag:
                         read_image = cv2.flip(read_image, 1)
-                    image[i,:,:,:] =read_image
+                    image[i,:,:,:] =np.reshape(read_image,[rows,cols,ch])
                 angle=batch_sample[1]
                 if do_flip_flag:
                     angle = -angle
