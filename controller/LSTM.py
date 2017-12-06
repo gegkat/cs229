@@ -35,10 +35,11 @@ def split_train(lis,n):
 def get_timestamp():
     return datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
-def mkdir_unique(timestamp, prefix=''):
+def mkdir_unique(timestamp, args):
+    prefix='time_'+args.timesteps+'_epochs_'+args.epochs
     mydir = os.path.join(
         os.getcwd(), 
-        prefix +'LSTM'+ '_' + timestamp)
+        'LSTM'+ '_' + prefix+ '_'+timestamp)
 
     os.makedirs(mydir)
 
@@ -231,10 +232,10 @@ if __name__ == '__main__':
     print('Trained model in {:.2f} seconds'.format(end_time-start_time))
 
     timestamp = get_timestamp()
-    udir = mkdir_unique(timestamp, args.model)
+    udir = mkdir_unique(timestamp, args)
     # Save the model
     print("Saving model weights and configuration file.")
-    model.save(os.path.join(udir,'model_' + args.model + '.h5'))
+    model.save(os.path.join(udir,'model_LSTM_' + args.timesteps+'.h5'))
 
     with open(os.path.join(udir, 'history.csv'), 'w') as f:
         for i in range(0, len(history.history['loss'])):
