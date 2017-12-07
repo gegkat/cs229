@@ -36,7 +36,7 @@ def get_timestamp():
     return datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
 def mkdir_unique(timestamp, args):
-    prefix='time_'+args.timesteps+'_epochs_'+args.epochs
+    prefix='time_'+str(args.timesteps)+'_epochs_'+str(args.epochs)
     mydir = os.path.join(
         os.getcwd(), 
         'LSTM'+ '_' + prefix+ '_'+timestamp)
@@ -57,8 +57,8 @@ def get_samples(data_dir, num_split, timesteps):
     # Large turns are the biggest challenge for the model, but the majority of the samples
     # represent driving straight. The following constants are used to discard a portion of
     # of samples under a minimum steering angle
-#    SMALL_TURN_THRESH = 0.03  # Threshold to consider discarding a sample
-#    SMALL_TURN_DISCARD_PROBABILITY = 0.60   # Probability to discard a sample
+    SMALL_TURN_THRESH = 0.03  # Threshold to consider discarding a sample
+    SMALL_TURN_DISCARD_PROBABILITY = 0.60   # Probability to discard a sample
 
     # Read and store all lines in .csv file
     data_dir = './' + data_dir + '/'
@@ -99,6 +99,8 @@ def get_samples(data_dir, num_split, timesteps):
         orig_throttle = float(lines_split[i][4])
         orig_brake = float(lines_split[i][5])
         orig_speed = float(lines_split[i][6])
+        if orig_steering_angle<SMALL_TURN_THRESH and random.random()<=SMALL_TURN_DISCARD_PROBABILITY:
+            continue
         samples.append([images_center[i:i+timesteps],orig_steering_angle+STEERING_CORRECTION[0],orig_throttle,orig_speed,True])
         samples.append([images_center[i:i+timesteps],orig_steering_angle+STEERING_CORRECTION[0],orig_throttle,orig_speed,False])
         samples.append([images_left[i:i+timesteps],orig_steering_angle+STEERING_CORRECTION[1],orig_throttle,orig_speed,True])
@@ -235,7 +237,7 @@ if __name__ == '__main__':
     udir = mkdir_unique(timestamp, args)
     # Save the model
     print("Saving model weights and configuration file.")
-    model.save(os.path.join(udir,'model_LSTM_' + args.timesteps+'.h5'))
+    model.save(os.path.join(udir,'model_LSTM_' + str(args.timesteps)+'.h5'))
 
     with open(os.path.join(udir, 'history.csv'), 'w') as f:
         for i in range(0, len(history.history['loss'])):
