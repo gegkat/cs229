@@ -95,10 +95,10 @@ def get_samples(data_dir, num_split, timesteps):
 
     samples=[]
     for i in range(0,len(lines)-timesteps):
-        orig_steering_angle = float(lines_split[i][3])
-        orig_throttle = float(lines_split[i][4])
-        orig_brake = float(lines_split[i][5])
-        orig_speed = float(lines_split[i][6])
+        orig_steering_angle = float(lines_split[i+timesteps-1][3])
+        orig_throttle = float(lines_split[i+timesteps-1][4])
+        orig_brake = float(lines_split[i+timesteps-1][5])
+        orig_speed = float(lines_split[i+timesteps-1][6])
         if orig_steering_angle<SMALL_TURN_THRESH and random.random()<=SMALL_TURN_DISCARD_PROBABILITY:
             continue
         samples.append([images_center[i:i+timesteps],orig_steering_angle+STEERING_CORRECTION[0],orig_throttle,orig_speed,True])
