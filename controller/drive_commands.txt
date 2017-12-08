@@ -50,3 +50,11 @@ python drive.py NVIDIA_2017-12-07_17-18-12_smooth_30mph_long/model_NVIDIA.h5
 # At 25 mph forward track it is definitley wobbly and crashed on the big right turn
 # On backwards track at 20 mph under turned on big right turn before bridge
 python drive_LSTM.py LSTM_time_5_epochs_15_2017-12-07_16-54-25/model_LSTM_5.h5
+
+
+# LSTM (add dropout?)
+# Use cs229 env
+# Forward track 20mph successful
+# Backward track 20mph successful
+# Backward track 25mph, barely made it, wobbly and hit warning tracks
+python drive_LSTM.py LSTM_time_5_epochs_15_2017-12-07_20-55-38/model_LSTM_5.h5
