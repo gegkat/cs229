@@ -37,6 +37,8 @@ def get_timestamp():
 
 def mkdir_unique(timestamp, args):
     prefix='time_'+str(args.timesteps)+'_epochs_'+str(args.epochs)
+    if args.throttle==1:
+        prefix=prefix+'_throttle'
     mydir = os.path.join(
         os.getcwd(), 
         'LSTM'+ '_' + prefix+ '_'+timestamp)
