@@ -101,12 +101,12 @@ def get_samples(data_dir, num_split, timesteps):
         orig_speed = float(lines_split[i+timesteps-1][6])
         if orig_steering_angle<SMALL_TURN_THRESH and random.random()<=SMALL_TURN_DISCARD_PROBABILITY:
             continue
-        samples.append([images_center[i:i+timesteps],orig_steering_angle+STEERING_CORRECTION[0],orig_throttle,orig_speed,True])
-        samples.append([images_center[i:i+timesteps],orig_steering_angle+STEERING_CORRECTION[0],orig_throttle,orig_speed,False])
-        samples.append([images_left[i:i+timesteps],orig_steering_angle+STEERING_CORRECTION[1],orig_throttle,orig_speed,True])
-        samples.append([images_left[i:i+timesteps],orig_steering_angle+STEERING_CORRECTION[1],orig_throttle,orig_speed,False])
-        samples.append([images_right[i:i+timesteps],orig_steering_angle+STEERING_CORRECTION[2],orig_throttle,orig_speed,True])
-        samples.append([images_right[i:i+timesteps],orig_steering_angle+STEERING_CORRECTION[2],orig_throttle,orig_speed,False])
+        samples.append([images_center[i:i+timesteps],orig_steering_angle+STEERING_CORRECTION[0],orig_brake,orig_throttle,orig_speed,True])
+        samples.append([images_center[i:i+timesteps],orig_steering_angle+STEERING_CORRECTION[0],orig_brake,orig_throttle,orig_speed,False])
+        samples.append([images_left[i:i+timesteps],orig_steering_angle+STEERING_CORRECTION[1],orig_brake,orig_throttle,orig_speed,True])
+        samples.append([images_left[i:i+timesteps],orig_steering_angle+STEERING_CORRECTION[1],orig_brake,orig_throttle,orig_speed,False])
+        samples.append([images_right[i:i+timesteps],orig_steering_angle+STEERING_CORRECTION[2],orig_brake,orig_throttle,orig_speed,True])
+        samples.append([images_right[i:i+timesteps],orig_steering_angle+STEERING_CORRECTION[2],orig_brake,orig_throttle,orig_speed,False])
     print('# SAMPLES: {}'.format(len(samples)))
     return samples
 
@@ -140,8 +140,8 @@ def generator(samples, dimensions,output_throttle=False,batch_size=32):
                 angle=batch_sample[1]
                 if do_flip_flag:
                     angle = -angle
-                throttle = batch_sample[2]
-                speed = batch_sample[3]
+                throttle = batch_sample[3]-batch_sample[2]
+                speed = batch_sample[4]
                 images.append(image)
                 angles.append(angle)
                 throttles.append(throttle)
@@ -176,6 +176,12 @@ if __name__ == '__main__':
         help='Fraction of example data to use'
     )
     parser.add_argument(
+        '--throttle',
+        type=int,
+        default = 1,
+        help='Output Throttle'
+    )
+    parser.add_argument(
         '--epochs',
         type=int,
         default = 3,
@@ -207,7 +213,9 @@ if __name__ == '__main__':
         default = 0,
         help='Use dropout?'
                         )
+
     args = parser.parse_args()
+    OUTPUT_THROTTLE=args.throttle
     samples = get_samples(args.data_dir, args.frac,args.timesteps)
     # Split samples into training and validation
     train_samples, validation_samples = train_test_split(samples, test_size=0.2)
