@@ -201,7 +201,12 @@ if __name__ == '__main__':
         default = 10,
         help='Time steps to consider per example'
                         )
-
+    parser.add_argument(
+        '--dropout',
+        type=float,
+        default = 0,
+        help='Use dropout?'
+                        )
     args = parser.parse_args()
     samples = get_samples(args.data_dir, args.frac,args.timesteps)
     # Split samples into training and validation
@@ -217,7 +222,7 @@ if __name__ == '__main__':
         n_outputs = 1
 
 	model=Sequential()
-	model=models.LSTM_model(model,n_outputs,(timesteps,ch,row,col),0)
+	model=models.LSTM_model(model,n_outputs,(timesteps,ch,row,col),0,args.dropout)
     model.compile(loss='mse', optimizer='adam')
     print(model.summary())
 

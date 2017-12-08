@@ -31,7 +31,7 @@ import sklearn
 from sklearn.model_selection import train_test_split
 import random
 
-def LSTM_model(model,no_outputs,dimensions, verbosity=0):
+def LSTM_model(model,no_outputs,dimensions, verbosity=0,dropout=0):
     timesteps, ch, row, col = dimensions
     model = Sequential()
     if timesteps == 1:
@@ -66,10 +66,14 @@ def LSTM_model(model,no_outputs,dimensions, verbosity=0):
 #    model.add(LSTM(512,return_sequences=True))
 #Does not return sequences, just takes final output
     model.add(LSTM(100))
-#Fully connected layers on final output.
+#Fully connected layers on final output
     model.add(Dense(100))
-    model.add(Dense(50))
-    model.add(Dense(10))
+    if(dropout!=0):
+        model.add(Dropout(dropout))
+    model.add(Dense(50,activation='relu'))
+    if(dropout!=0):
+        model.add(Dropout(dropout))
+    model.add(Dense(10,activation='relu'))
 #Predict only steering for now
     model.add(Dense(no_outputs))
   # Adam optimizer is a standard, efficient SGD optimization method
