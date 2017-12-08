@@ -231,8 +231,8 @@ if __name__ == '__main__':
     else:
         n_outputs = 1
 
-	model=Sequential()
-	model=models.LSTM_model(model,n_outputs,(timesteps,ch,row,col),0,args.dropout)
+    model=Sequential()
+    model=models.LSTM_model(model,n_outputs,(timesteps,ch,row,col),0,args.dropout)
     model.compile(loss='mse', optimizer='adam')
     print(model.summary())
 
