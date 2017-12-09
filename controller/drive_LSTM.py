@@ -19,7 +19,7 @@ from keras.models import load_model
 import h5py
 from keras import __version__ as keras_version
 
-# import LSTM
+import cv2
 
 sio = socketio.Server()
 app = Flask(__name__)
@@ -50,25 +50,23 @@ class SimplePIController:
 
 
 controller = SimplePIController(0.1, 0.002)
-set_speed = 12 #9
+set_speed = 25 #9
 controller.set_desired(set_speed)
 
 
 @sio.on('telemetry')
 def telemetry(sid, data):
     global img_list
-    global steer_cmd
-    global throttle_cmd
 
     if data:
         #print('start')
         #for key in data:
         #    print(key)
 
-        for key in data:
-            if not key == "image":
-                sys.stdout.write('{}, '.format(data[key]))
-        sys.stdout.write('\n')
+        # for key in data:
+        #     if not key == "image":
+        #         sys.stdout.write('{}, '.format(data[key]))
+        # sys.stdout.write('\n')
         #print('end')
         # The current steering angle of the car
         steering_angle = data["steering_angle"]
@@ -80,10 +78,14 @@ def telemetry(sid, data):
         imgString = data["image"]
         image = Image.open(BytesIO(base64.b64decode(imgString)))
         image_array = np.asarray(image)
-
+        # print(image_array.shape)
+        image_array = cv2.cvtColor(image_array, cv2.COLOR_BGR2GRAY)#CONVERT TO GRAYSCALE
+        b,m=np.shape(image_array)
+        image_array = np.reshape(image_array, (b,m,1))
+        # print(image_array.shape)
         # in case img list has not been spooled up, set initial values to 0
-        steer_cmd = 0
-        throttle_cmd = 0
+        steering_angle = 0
+        throttle = 0
 
         img_list.append(image_array)
         # print(len(img_list))
@@ -91,20 +93,23 @@ def telemetry(sid, data):
             model_in = np.array(img_list)  
             img_list.pop(0)
             # print(model_in[None, :, :, :, :].shape)
+            start_time = time.time()
             model_output = model.predict(model_in[None, :, :, :, :], batch_size=1) 
+            print("--- %s seconds ---" % (time.time() - start_time))
             # model_output = model.predict(model_in[None, :, :, :, :], batch_input_shape=(1, 5, 160, 320, 3)) 
             # print(model_output)
-            steer_cmd = float(model_output[0][0][0])
-            throttle_cmd = float(model_output[0][0][1])
+            model_output = model_output[0]
+
+            steering_angle = float(model_output[0])
+            if len(model_output) > 1:
+                throttle = float(model_output[0][1])
+            else:
+                throttle = controller.update(float(speed))
+
+        #print(steering_angle, throttle)
+        send_control(steering_angle, throttle)
 
 
-
-        send_control(steer_cmd, throttle_cmd)
-  
-
-
-
-        # throttle = controller.update(float(speed))
 
         #print(steering_angle, throttle)
 

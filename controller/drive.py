@@ -19,10 +19,13 @@ from keras.models import load_model
 import h5py
 from keras import __version__ as keras_version
 
+import cv2
+
 sio = socketio.Server()
 app = Flask(__name__)
 model = None
-prev_image_array = None
+
+global img_list
 
 
 class SimplePIController:
@@ -48,10 +51,9 @@ class SimplePIController:
 
 @sio.on('telemetry')
 def telemetry(sid, data):
+    global img_list
+
     if data:
-        #print('start')
-        #for key in data:
-        #    print(key)
 
         with open(out_file, 'a') as f: 
             keys = ['steering_angle', 'throttle', 'speed', 'x', 'z', 'heading']
@@ -59,7 +61,6 @@ def telemetry(sid, data):
                 f.write('{}, '.format(data[key]))
             f.write('\n')
 
-        #print('end')
         # The current steering angle of the car
         steering_angle = data["steering_angle"]
         # The current throttle of the car
@@ -70,18 +71,50 @@ def telemetry(sid, data):
         imgString = data["image"]
         image = Image.open(BytesIO(base64.b64decode(imgString)))
         image_array = np.asarray(image)
-        model_output = model.predict(image_array[None, :, :, :], batch_size=1) 
+
+        # Begin timer
+        start_time = time.time()
+
+        # Convert image to gray
+        if args.gray:
+            image_array = cv2.cvtColor(image_array, cv2.COLOR_BGR2GRAY)
+            b,m=np.shape(image_array)
+            image_array = np.reshape(image_array, (b,m,1))
+
+        if args.LSTM > 0:
+            img_list.append(image_array)
+            if len(img_list) == args.LSTM:
+                model_in = np.array(img_list)
+                model_output = model.predict(model_in[None, :, :, :, :], batch_size=1) 
+
+                # pop off first img in list
+                img_list.pop(0)
+            else: 
+                # If we don't have enough images return 0 for controls
+                model_output = [[0, 0]]
+
+
+        else:
+            model_output = model.predict(image_array[None, :, :, :], batch_size=1) 
+
+        # Report time for model to predict
+        print("--- %s seconds ---" % (time.time() - start_time))
+
+        # Pull out steering angle and throttle (optional) from 
+        # model output
         model_output = model_output[0]
         steering_angle = float(model_output[0])
+
+        # Use throttle model if given, otherwise use PID controller
         if len(model_output) > 1:
-            throttle = float(model_output[0][1])
+            throttle = float(model_output[1])
         else:
             throttle = controller.update(float(speed))
 
-        #print(steering_angle, throttle)
+        # Send controls to simulator
         send_control(steering_angle, throttle)
 
-        # save frame
+        # save frame for video
         if args.img_dir != '':
             timestamp = datetime.utcnow().strftime('%Y_%m_%d_%H_%M_%S_%f')[:-3]
             image_filename = os.path.join(args.img_dir, timestamp)
@@ -128,10 +161,30 @@ if __name__ == '__main__':
         '--speed',
         type=int,
         default=12,
-        help='Path to image folder. This is where the images from the run will be saved.'
+        help='Set desired speed for PID controller'
     )
+
+    parser.add_argument(
+        '--gray',
+        type=int,
+        default=0,
+        help='Boolean to control whether to convert input images to grayscale.'
+    )
+
+    parser.add_argument(
+        '--LSTM',
+        type=int,
+        default=0,
+        help='# of images to pass as array to LSTM. Use 0 if not LSTM.'
+    )
+
     args = parser.parse_args()
 
+    # Initialize global img_list
+    global img_list
+    img_list = []
+
+    # Open telem file
     out_file = args.model + '_' + str(args.speed) + 'mph.telem'
     with open(out_file, 'w') as f:
         # just clear contents of out_file
@@ -142,7 +195,7 @@ if __name__ == '__main__':
     if args.record == 1:
         args.img_dir = args.model + '_img'
 
-
+    # Initialize controller gains and desired speed
     controller = SimplePIController(0.1, 0.002)
     controller.set_desired(args.speed)
 
