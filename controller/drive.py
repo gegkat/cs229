@@ -97,6 +97,7 @@ def telemetry(sid, data):
         else:
             model_output = model.predict(image_array[None, :, :, :], batch_size=1) 
 
+        # time.sleep(0.02)
         # Report time for model to predict
         print("--- %s seconds ---" % (time.time() - start_time))
 

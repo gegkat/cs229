@@ -1,4 +1,5 @@
-clear all; close all; clc;
+% clear all; close all; clc;
+clear all;
 
 f = fileread('driving_log.csv'); 
 lines = regexp(f, '\n', 'split');

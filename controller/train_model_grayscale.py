@@ -239,8 +239,8 @@ if __name__ == '__main__':
     model = Sequential()
     # Preprocess incoming data, centered around zero with small standard deviation 
     model.add(Lambda(lambda x: x/127.5 - 1.,
-            input_shape=(row, col, ch),
-            output_shape=(row, col, ch)))
+            input_shape=(ch, row, col),
+            output_shape=(ch, row, col)))
             #input_shape=(row, col),
             #output_shape=(row, col)))
     # Crop to focus on the part of the image containing the road

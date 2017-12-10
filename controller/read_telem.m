@@ -1,10 +1,11 @@
-clear all;
-close all; 
-clc;
+% clear all;
+% close all; 
+% clc;
 
 % telem_output = load('drive.out'); 
 % telem_output = load('model_simple_2017-11-19_13-31-33.h5.telem');
-telem_output = load('model_cnn_2017-11-19_13-36-39.h5_100mph.telem');
+% telem_output = load('model_cnn_2017-11-19_13-36-39.h5_100mph.telem');
+telem_output = load('model_NVIDIA.h5_25mph.telem');
 
 % flds = {'z', 'steeringAngle', 'speed', 'throttle', 'x', 'heading'};
 flds = {'steering_angle', 'throttle', 'speed', 'x', 'z', 'heading'};
@@ -16,7 +17,7 @@ end
 data.heading = data.heading*180/pi;
 
 for i = 1:length(flds)
-    figure; plot(data.(flds{i}))
+    figure(i); hold all; plot(data.(flds{i}))
     title(flds{i})
 end
 
