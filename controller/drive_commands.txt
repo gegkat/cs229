@@ -73,7 +73,7 @@ python drive.py LSTM_time_5_epochs_20_throttle_2017-12-08_04-46-19/model_LSTM_5.
 # Even better. Made it through both big turns but went off the road on the one after the big right. Generally wobbly though
 python drive.py LSTM_time_5_epochs_20_throttle_2017-12-08_09-13-36_dropout/model_LSTM_5.h5 --gray 1 --LSTM 5
 
-# LSTM, smooth data set, 3 frames for LSTM
+# LSTM, smooth data set, 3 frames for LSTM, gray, throttle, dropout
 # Use cs229 env
 # Crashes on big left turn in forward direction
 # Works beauitfully on reverse track!
