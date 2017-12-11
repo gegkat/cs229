@@ -5,7 +5,7 @@
 % telem_output = load('drive.out'); 
 % telem_output = load('model_simple_2017-11-19_13-31-33.h5.telem');
 % telem_output = load('model_cnn_2017-11-19_13-36-39.h5_100mph.telem');
-telem_output = load('model_NVIDIA.h5_25mph.telem');
+telem_output = load('model_LSTM_3.h5_reverse.telem');
 
 % flds = {'z', 'steeringAngle', 'speed', 'throttle', 'x', 'heading'};
 flds = {'steering_angle', 'throttle', 'speed', 'x', 'z', 'heading'};
