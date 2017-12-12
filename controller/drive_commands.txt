@@ -15,46 +15,67 @@ python drive.py complex/learning_curve/complex_frac_100/model_complex_2017-11-19
 python video.py complex/learning_curve/complex_frac_100/model_complex_2017-11-19_13-42-23.h5_img
 
 # NVIDIA
+# Use cs229_bak2
 python drive.py NVIDIA/learning_curve/NVIDIA_frac_100/model_NVIDIA_2017-11-19_13-45-50.h5 --record 1
 python video.py NVIDIA/learning_curve/NVIDIA_frac_100/model_NVIDIA_2017-11-19_13-45-50.h5_img
 
 # LSTM 
 # 10 frames, goes unstable
-python drive_LSTM.py LSTMLSTM_2017-12-03_23-43-33/model_LSTM.h5
+# Use cs229 env
+python drive.py LSTMLSTM_2017-12-03_23-43-33/model_LSTM.h5 --LSTM 10
 
 # LSTM
 # 5 frames, drives well until big left turn at dirt patch
-python drive_LSTM.py LSTMLSTM_2017-12-04_03-51-32/model_LSTM.h5
+# Use cs229 env
+python drive.py LSTMLSTM_2017-12-04_03-51-32/model_LSTM.h5 --LSTM 5
 
 # NVIDIA Grayscale on slow data set, Batch size 800
 # Use python 3.6
-python drive.py NVIDIA_2017-12-02_22-01-16/model_NVIDIA.h5 --record 1
+python drive.py NVIDIA_2017-12-02_22-01-16/model_NVIDIA.h5 --gray 1 --record 1
 python video.py NVIDIA_2017-12-02_22-01-16/model_NVIDIA.h5_img
 
 # NVIDIA Grayscale on slow data set, Batch size 600
 # Drives very well. Even can do 30 mph sometimes
 # In reverse track does well except for big right turn before bridge
 # Use python 3.6
-python drive.py NVIDIA_2017-12-05_20-47-18/model_NVIDIA.h5 --record 1
+python drive.py NVIDIA_2017-12-05_20-47-18/model_NVIDIA.h5 --gray 1 --record 1
 python video.py NVIDIA_2017-12-05_20-47-18/model_NVIDIA.h5_img
 
 # NVIDIA Grayscale, smooth long data set
 # Use python 3.6
 # Drives nicely at 20 mph forward and backward tracks
 # Steering angles seem a bit smaller compared to NVIDIA_2017-12-05_20-47-18
-python drive.py NVIDIA_2017-12-07_17-18-12_smooth_30mph_long/model_NVIDIA.h5
+python drive.py NVIDIA_2017-12-07_17-18-12_smooth_30mph_long/model_NVIDIA.h5 --gray 1 
 
-# LSTM 
+# LSTM slow data set fixed
 # Use cs229 env
 # Made it around forward track at 20 mph, feels wobbly, a bit unstable
 # At 25 mph forward track it is definitley wobbly and crashed on the big right turn
 # On backwards track at 20 mph under turned on big right turn before bridge
-python drive_LSTM.py LSTM_time_5_epochs_15_2017-12-07_16-54-25/model_LSTM_5.h5
+python drive.py LSTM_time_5_epochs_15_2017-12-07_16-54-25/model_LSTM_5.h5  --gray 1 --LSTM 5 
 
-
-# LSTM (add dropout?)
+# LSTM smooth data set
 # Use cs229 env
 # Forward track 20mph successful
 # Backward track 20mph successful
 # Backward track 25mph, barely made it, wobbly and hit warning tracks
-python drive_LSTM.py LSTM_time_5_epochs_15_2017-12-07_20-55-38/model_LSTM_5.h5
+python drive.py LSTM_time_5_epochs_15_2017-12-07_20-55-38/model_LSTM_5.h5 --gray 1 --LSTM 5
+
+
+# LSTM smooth data set, with throttle
+# Use cs229 env
+# So close! Wobbly and crashed on big left turn. But speed was good around 25 on first straight, 20 on first turn, and 30 on bridge
+python drive.py LSTM_time_5_epochs_20_throttle_2017-12-08_04-46-19/model_LSTM_5.h5 --gray 1 --LSTM 5
+
+
+# LSTM smooth data set, with throttle and dropout
+# Use cs229 env
+# Even better. Made it through both big turns but went off the road on the one after the big right. Generally wobbly though
+python drive.py LSTM_time_5_epochs_20_throttle_2017-12-08_09-13-36_dropout/model_LSTM_5.h5 --gray 1 --LSTM 5
+
+# LSTM, smooth data set, 3 frames for LSTM, gray, throttle, dropout
+# Use cs229 env
+# Crashes on big left turn in forward direction
+# Works beauitfully on reverse track!
+# Gets close to edge of track sometimes but not as wobbly as other LSTM attempts
+python drive.py LSTM_time_3_epochs_20_throttle_2017-12-09_19-17-17/model_LSTM_3.h5 --gray 1 --LSTM 3
